@@ -10,10 +10,12 @@
 
 1. [Install rust](https://rustup.rs/)
 2. Run web app:
-```
-cd container-hosting
-cargo run
-```
+  ```
+  cd container-hosting # subdirectory same name
+  cargo run
+  ```
+3. Visit http://127.0.0.1:8000/
+
 
 ## To start creating first create a token (PAT)</br>
 https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
