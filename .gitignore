@@ -1,0 +1,7 @@
+.env
+auto-linux
+auto
+*.swp
+__pycache__
+venv
+*.db
