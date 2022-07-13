@@ -5,3 +5,4 @@ auto
 __pycache__
 venv
 *.db
+target
