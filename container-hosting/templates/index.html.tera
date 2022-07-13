@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <style>
+    body {
+      margin: 10px;
+    }
+    section {
+      margin: 10px 5px;
+    }
+  </style>
+  </head>
+  <body>
+    <h1>Container Hosting</h1>
+
+    <section>
+    <a href="">Connect with Github</a>
+    </section>
+
+    <form action="/new" method="POST">
+      <fieldset>
+        <label for="reponame">Repo name:</label>
+        <input name="reponame" id="reponame" required />
+        <input type="submit" />
+      </fieldset>
+    </form>
+  </body>
+</html>
