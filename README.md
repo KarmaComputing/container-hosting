@@ -40,4 +40,3 @@ after the first commit is being pushed to enable the pr-preview and deploy workf
 
 ### Enjoy your new repo!
 
-# Web
