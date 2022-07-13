@@ -1,13 +1,12 @@
-###This repo automatically creates a new repository with the following features in your own user github account:
-* release versions
+## This repo automatically creates a new repository with the following features in your Github account:
+* auto release versions
 * code analytics
-* issue templates
-* dokku pr-previews and deployment.
-* repositor secrets 
-* deletiion of the dokku pr-previews after merge. 
+* issues template
+* repository secrets creation 
+* dokku pr-previews and deployment workflows
+* deletion of the dokku pr-previews after merge. 
 
-
-To start creating first create a token (PAT)</br>
+## To start creating first create a token (PAT)</br>
 https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 
 Then you will need to fill the .env.example with the required information. </br>
@@ -30,4 +29,4 @@ You will need a folder structure of
 ```
 after the first commit is being pushed to enable the pr-preview and deploy workflows</br>
 
-Enjoy your new repo!
+### Enjoy your new repo!
