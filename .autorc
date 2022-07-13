@@ -1,0 +1,11 @@
+{
+  "plugins": [
+    "git-tag",
+    "all-contributors",
+    "first-time-contributor",
+    "released"
+  ],
+  "owner": "GITHUB_OWNER",
+  "repo": "REPO_NAME",
+  "name": "GITHUB_OWNER",
+}
