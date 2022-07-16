@@ -108,7 +108,6 @@ async def githubcallback(request):
             headers=headers,
             data=json.dumps(data),
         )
-    breakpoint()
     with open("./repo-template-files/.github/workflows/release.yml") as fp:
         release_yml = fp.read()
         release_yml = release_yml.replace("GITHUB_OWNER", username)
