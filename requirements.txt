@@ -1,0 +1,6 @@
+Jinja2==3.1.2
+python-dotenv==0.20.0
+requests==2.28.1
+starlette==0.20.4
+uuid6==2022.6.25
+uvicorn==0.18.2
