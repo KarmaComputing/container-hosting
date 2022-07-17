@@ -3,11 +3,16 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route, Mount
 from starlette.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
+
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+
 import os
 import requests
 import json
 from uuid6 import uuid7
 import base64
+from nacl import encoding, public
 
 import secrets
 from dotenv import load_dotenv
@@ -19,6 +24,33 @@ templates = Jinja2Templates(directory="templates")
 GITHUB_OAUTH_CLIENT_ID = os.getenv("GITHUB_OAUTH_CLIENT_ID")
 GITHUB_OAUTH_CLIENT_SECRET = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
 GITHUB_OAUTH_REDIRECT_URI = os.getenv("GITHUB_OAUTH_REDIRECT_URI")
+
+
+def generate_ssh_keys():
+    """Generate public/private ssh keys
+
+    See also https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/
+    """
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    # Derive public key
+    public_key = key.public_key().public_bytes(
+        serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH
+    )
+
+    # Serialize private_key to OpenSSH format
+    openSSH = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.OpenSSH,
+        # use BestAvailableEncryption is want password protected key
+        # encryption_algorithm=serialization.BestAvailableEncryption(b'mypassword')
+        # Create key with no password
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    return public_key, openSSH
 
 
 async def homepage(request):
@@ -108,6 +140,14 @@ async def githubcallback(request):
             headers=headers,
             data=json.dumps(data),
         )
+
+        # Create repo secrets
+        req = requests.get(
+            "https://api.github.com/repos/OWNER/REPO/actions/secrets/public-key"
+        ).json()
+        github_repo_public_key = req["key"]
+
+    # Create release.yml github workflow
     with open("./repo-template-files/.github/workflows/release.yml") as fp:
         release_yml = fp.read()
         release_yml = release_yml.replace("GITHUB_OWNER", username)
