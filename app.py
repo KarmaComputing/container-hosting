@@ -11,7 +11,7 @@ import os
 import requests
 import json
 from uuid6 import uuid7
-import base64
+from base64 import b64encode
 from nacl import encoding, public
 
 import secrets
@@ -51,6 +51,19 @@ def generate_ssh_keys():
         encryption_algorithm=serialization.NoEncryption(),
     )
     return public_key, openSSH
+
+
+def encrypt_github_secret(public_key: str, secret_value: str) -> str:
+    """Encrypt a Unicode string using the GitHub repo public key.
+    Used for creating GitHub repo secrets
+    """
+    public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+    sealed_box = public.SealedBox(public_key)
+    encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+    return b64encode(encrypted).decode("utf-8")
+
+
+breakpoint()
 
 
 async def homepage(request):
@@ -129,7 +142,7 @@ async def githubcallback(request):
         autorc = fp.read()
         autorc = autorc.replace("GITHUB_OWNER", username)
         autorc = autorc.replace("GITHUB_REPO_NAME", repo_name)
-        autorc_b64 = base64.b64encode(autorc.encode("utf-8")).decode("utf-8")
+        autorc_b64 = b64encode(autorc.encode("utf-8")).decode("utf-8")
         data = {
             "message": "create .autorc",
             "committer": {"name": username, "email": email},
@@ -141,18 +154,35 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
-        # Create repo secrets
-        req = requests.get(
-            "https://api.github.com/repos/OWNER/REPO/actions/secrets/public-key"
-        ).json()
-        github_repo_public_key = req["key"]
+    # Create repo secrets
+    req = requests.get(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/public-key",
+        headers=headers,
+    ).json()
+    github_repo_public_key = req["key"]
+    github_repo_public_key_id = req["key_id"]
+
+    # Create DOKKU_SSH_PRIVATE_KEY
+    public_key, private_key = generate_ssh_keys()
+    DOKKU_SSH_PRIVATE_KEY_Encrypted = encrypt_github_secret(
+        github_repo_public_key, private_key.decode("utf-8")
+    )
+    data = {
+        "encrypted_value": DOKKU_SSH_PRIVATE_KEY_Encrypted,
+        "key_id": github_repo_public_key_id,
+    }
+    req = requests.put(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/DOKKU_SSH_PRIVATE_KEY",
+        headers=headers,
+        data=json.dumps(data),
+    )
 
     # Create release.yml github workflow
     with open("./repo-template-files/.github/workflows/release.yml") as fp:
         release_yml = fp.read()
         release_yml = release_yml.replace("GITHUB_OWNER", username)
         release_yml = release_yml.replace("GITHUB_REPO_NAME", repo_name)
-        release_yml_b64 = base64.b64encode(release_yml.encode("utf-8")).decode("utf-8")
+        release_yml_b64 = b64encode(release_yml.encode("utf-8")).decode("utf-8")
         data = {
             "message": "create .release_yml",
             "committer": {"name": username, "email": email},
