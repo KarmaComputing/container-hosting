@@ -10,7 +10,6 @@ from cryptography.hazmat.primitives import serialization
 import os
 import requests
 import json
-from uuid6 import uuid7
 from base64 import b64encode
 from nacl import encoding, public
 
@@ -109,8 +108,8 @@ async def githubcallback(request):
     headers = {"Authorization": f"token {access_token}"}
     headers["Accept"] = "application/vnd.github+json"
     # Create unique repo name
-    uuid = uuid7()
-    repo_name = f"container-hosting-{uuid}"
+    random_string = secrets.token_urlsafe(5).lower()
+    repo_name = f"container-hosting-{random_string}"
     data = {
         "name": repo_name,
         "description": "Repository created",
@@ -257,6 +256,15 @@ async def githubcallback(request):
             headers=headers,
             data=json.dumps(data),
         )
+
+    # Get the deploy workflow id
+    import time;time.sleep(3) # TODO hook/poll
+    req = requests.get(f"https://api.github.com/repos/{username}/{repo_name}/actions/workflows", headers=headers)
+    deploy_workflow_id = req.json()['workflows'][0]['id']
+    # Start the deploy.yml workflow action
+    data = {"ref":"main"}
+
+    req = requests.post(f'https://api.github.com/repos/{username}/{repo_name}/actions/workflows/{deploy_workflow_id}/dispatches', headers=headers, data=json.dumps(data))
 
     return templates.TemplateResponse(
         "welcome.html", {"repo_url": repo_url, "request": request}
