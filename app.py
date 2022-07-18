@@ -24,6 +24,8 @@ templates = Jinja2Templates(directory="templates")
 GITHUB_OAUTH_CLIENT_ID = os.getenv("GITHUB_OAUTH_CLIENT_ID")
 GITHUB_OAUTH_CLIENT_SECRET = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
 GITHUB_OAUTH_REDIRECT_URI = os.getenv("GITHUB_OAUTH_REDIRECT_URI")
+DOKKU_HOST = os.getenv("DOKKU_HOST")
+DOKKU_HOST_SSH_ENDPOINT = os.getenv("DOKKU_HOST_SSH_ENDPOINT")
 
 
 def generate_ssh_keys():
@@ -62,8 +64,6 @@ def encrypt_github_secret(public_key: str, secret_value: str) -> str:
     encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
     return b64encode(encrypted).decode("utf-8")
 
-
-breakpoint()
 
 
 async def homepage(request):
@@ -113,8 +113,8 @@ async def githubcallback(request):
     repo_name = f"container-hosting-{uuid}"
     data = {
         "name": repo_name,
-        "description": "This is your first repository",
-        "homepage": "https://container-hosting.anotherwebservice.com/",
+        "description": "Repository created",
+        "homepage": "https://container-hosting.anotherwebservice.com/#start",
         "private": False,
         "has_issues": True,
         "has_projects": True,
@@ -154,6 +154,23 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
+    # Upload initial Dockerfile
+    with open("./repo-template-files/src/Dockerfile") as fp:
+        dockerfile = fp.read()
+        dockerfile = dockerfile.replace("GITHUB_OWNER", username)
+        dockerfile = dockerfile.replace("GITHUB_REPO_NAME", repo_name)
+        dockerfile_b64 = b64encode(dockerfile.encode("utf-8")).decode("utf-8")
+        data = {
+            "message": "create .dockerfile",
+            "committer": {"name": username, "email": email},
+            "content": dockerfile_b64,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/contents/src/Dockerfile",
+            headers=headers,
+            data=json.dumps(data),
+        )
+
     # Create repo secrets
     req = requests.get(
         f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/public-key",
@@ -164,6 +181,20 @@ async def githubcallback(request):
 
     # Create DOKKU_SSH_PRIVATE_KEY
     public_key, private_key = generate_ssh_keys()
+    # Restrict public_key ssh commands
+    public_key = f'no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding {public_key.decode("utf-8")}'
+    # POST public key to DOKKU_HOST_SSH_ENDPOINT
+    data = {"public_key": public_key}
+    req = requests.post(DOKKU_HOST_SSH_ENDPOINT,json=data)
+    # Write out private_key
+    with open("./private_key", "wb") as fp:
+        fp.write(private_key)
+
+    # Write out public_key
+    with open("./private_key.pub", "wb") as fp:
+        fp.write(public_key.encode("utf-8"))
+
+    # Set Repo Secret DOKKU_SSH_PRIVATE_KEY
     DOKKU_SSH_PRIVATE_KEY_Encrypted = encrypt_github_secret(
         github_repo_public_key, private_key.decode("utf-8")
     )
@@ -173,6 +204,19 @@ async def githubcallback(request):
     }
     req = requests.put(
         f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/DOKKU_SSH_PRIVATE_KEY",
+        headers=headers,
+        data=json.dumps(data),
+    )
+
+    # Set Repo Secret DOKKU_HOST
+    DOKKU_HOST_Encrypted = encrypt_github_secret(
+        github_repo_public_key, DOKKU_HOST)
+    data = {
+        "encrypted_value": DOKKU_HOST_Encrypted,
+        "key_id": github_repo_public_key_id,
+    }
+    req = requests.put(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/DOKKU_HOST",
         headers=headers,
         data=json.dumps(data),
     )
@@ -190,6 +234,26 @@ async def githubcallback(request):
         }
         req = requests.put(
             f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/release.yml",
+            headers=headers,
+            data=json.dumps(data),
+        )
+
+    # Create deploy.yml github workflow
+    with open("./repo-template-files/.github/workflows/deploy.yml") as fp:
+        deploy_yml = fp.read()
+        deploy_yml = deploy_yml.replace("GITHUB_OWNER", username)
+        # APP_NAME is for dokku, and is currently the same as
+        # the REPO_NAME.
+        deploy_yml = deploy_yml.replace("APP_NAME", repo_name)
+        deploy_yml = deploy_yml.replace("REPO_NAME", repo_name)
+        deploy_yml_b64 = b64encode(deploy_yml.encode("utf-8")).decode("utf-8")
+        data = {
+            "message": "create deploy.yml",
+            "committer": {"name": username, "email": email},
+            "content": deploy_yml_b64,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/deploy.yml",
             headers=headers,
             data=json.dumps(data),
         )
