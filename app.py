@@ -1,8 +1,7 @@
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
-from starlette.routing import Route, Mount
 from starlette.templating import Jinja2Templates
-from starlette.staticfiles import StaticFiles
+from starlette.routing import Route
 import os
 import requests
 import json
@@ -120,6 +119,20 @@ async def githubcallback(request):
         }
         req = requests.put(
             f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/release.yml",
+            headers=headers,
+            data=json.dumps(data),
+        )
+    with open("./repo-template-files/.github/ISSUE_TEMPLATE/feature_request.md") as fp:
+        feature_request_md_b64 = base64.b64encode(release_yml.encode("utf-8")).decode(
+            "utf-8"
+        )
+        data = {
+            "message": "create feature_request_md",
+            "committer": {"name": username, "email": email},
+            "content": feature_request_md_b64,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/ISSUE_TEMPLATE/feature_request.md",
             headers=headers,
             data=json.dumps(data),
         )
