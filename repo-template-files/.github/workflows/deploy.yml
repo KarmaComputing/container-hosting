@@ -26,7 +26,7 @@ jobs:
           ssh-keyscan ${{ secrets.DOKKU_HOST }}>> ~/.ssh/known_hosts
           eval `ssh-agent -s`
           ssh-add - <<< "${{ secrets.DOKKU_SSH_PRIVATE_KEY}}"
-          ssh dokku@${{ secrets.DOKKU_HOST }} -C dokku apps:create APP_NAME
+          ssh dokku@${{ secrets.DOKKU_HOST }} -C dokku apps:create APP_NAME | true
           ssh dokku@${{ secrets.DOKKU_HOST }} -C dokku builder:set APP_NAME build-dir src
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku builder-dockerfile:set APP_NAME dockerfile-path Dockerfile"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku git:sync --build APP_NAME" https://github.com/GITHUB_OWNER/REPO_NAME.git main
