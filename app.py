@@ -220,6 +220,21 @@ async def githubcallback(request):
         data=json.dumps(data),
     )
 
+    # Create README.md
+    with open("./repo-template-files/README.md") as fp:
+        readme_md = fp.read()
+        readme_md_b64 = b64encode(readme_md.encode("utf-8")).decode("utf-8")
+        data = {
+            "message": "create README.md",
+            "committer": {"name": username, "email": email},
+            "content": readme_md_b64,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/contents/README.md",
+            headers=headers,
+            data=json.dumps(data),
+        )
+
     # Create release.yml github workflow
     with open("./repo-template-files/.github/workflows/release.yml") as fp:
         release_yml = fp.read()
