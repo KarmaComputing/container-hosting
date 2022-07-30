@@ -109,11 +109,11 @@ async def githubcallback(request):
     headers["Accept"] = "application/vnd.github+json"
     # Create unique repo name
     random_string = secrets.token_urlsafe(5).lower()
-    repo_name = f"container-hosting-{random_string}"
+    repo_name = f"container-{random_string}"
     data = {
         "name": repo_name,
-        "description": "Repository created",
-        "homepage": "https://container-hosting.anotherwebservice.com/#start",
+        "description": "Created using https://container-hosting.anotherwebservice.com/#start",
+        "homepage": f"https://container-{random_string}.containers.anotherwebservice.com/#start",
         "private": False,
         "has_issues": True,
         "has_projects": True,
