@@ -3,19 +3,70 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<a href="{{ github_authorize_url }}">Authorize GitHub</a>
+
+<style>
+li {
+    padding: 5px;
+}
+</style>
+
+<h1>Container Hosting Platform</h1>
+
+A simple container hosting platform.
 
 <hr />
-Soon: Automated quickstart of web frameworks (with Dockerfile + example code)
-<style>
-li { color: grey; }
-</style>
+<h2>Container hosting quickstart</h2>
+<ol>
+	<li>Choose your framework</li>
+	<li>Automatic project setup</li>
+</ol>
+
+
+Work in progress: Automated quickstart of popular web frameworks (with Dockerfile + example code)
 <ul>
     <li>Flask App quickstart(Python)</li>
-    <li>Django App quickstart (Python)</li>
+    <li><a href="{{ github_authorize_url_django }}">Django App quickstart (Python)</a></li>
     <li>Laravel App quickstart (PHP)</li>
     <li>Express App quickstart (Node.js)</li>
     <li>Rocket App quickstart (Rust)</li>
+    <li><a id="debounce" href="{{ github_authorize_url_rails }}">Rails quickstart (Ruby)</a></li>
+    <li><a href="github_authorize_url">No Framework</a> (bring your own)</li>
 </ul>
+
+
+<h3>Help I got an error</h3>
+
+<details>
+	<summary>When doing `docker-compose up` I see: IndexError: list index out of range</summary>
+
+````
+  File "compose/service.py", line 1950, in build
+  IndexError: list index out of range
+```
+
+<ul>
+	<li>Did you recently try to build docker containers on an M1 mac? Do you usually use `--load`?</li>
+	<li>Try `COMPOSE_DOCKER_CLI_BUILD=0 docker-compose up`</li>
+	<li>See <a href="https://github.com/docker/compose/issues/8494">Failed to execute script docker-compose. IndexError: list index out of range</a></li>
+</ul>
+</details>
+
+<details>
+	<summary>ERROR: Encountered errors while bringing up the project</summary>
+	<p>If you see the bind port is already allocated error, this usually means you have another application running on the same port (or forgot to stop docker-compose last time.</p> <p>Stop the other running application and start again</p>
+	<ul>
+	<li>Bind for 0.0.0.0:5000 failed: port is already allocated
+		ERROR: Encountered errors while bringing up the project.</li>
+	</ul>
+</details>
+
+<script>
+document.getElementById("debounce").addEventListener("click", function(e) {
+    e.target.innerHTML = "Please wait";
+    destination = e.target.href;
+    e.target.href="#";
+    document.location = destination;
+});
+</script>
 
 </html>

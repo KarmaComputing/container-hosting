@@ -13,6 +13,9 @@ import json
 from base64 import b64encode
 from nacl import encoding, public
 
+from git import Repo
+import shutil
+
 import secrets
 from dotenv import load_dotenv
 
@@ -20,6 +23,7 @@ load_dotenv(verbose=True)
 
 templates = Jinja2Templates(directory="templates")
 
+BASE_PATH = os.getenv("BASE_PATH")
 GITHUB_OAUTH_CLIENT_ID = os.getenv("GITHUB_OAUTH_CLIENT_ID")
 GITHUB_OAUTH_CLIENT_SECRET = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
 GITHUB_OAUTH_REDIRECT_URI = os.getenv("GITHUB_OAUTH_REDIRECT_URI")
@@ -71,11 +75,15 @@ async def homepage(request):
     print(body)
 
     client_id = GITHUB_OAUTH_CLIENT_ID
-    state = secrets.token_urlsafe(30)
+    state = f"{secrets.token_urlsafe(30)}---no-framework"
+    state_rails = f"{secrets.token_urlsafe(30)}---rails"
+    state_django = f"{secrets.token_urlsafe(30)}---django"
     github_authorize_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state}&scope=repo%20user:email"  # noqa: E501
+    github_authorize_url_rails = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_rails}&scope=repo%20user:email"  # noqa: E501
+    github_authorize_url_django = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_django}&scope=repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
-        "index.html", {"github_authorize_url": github_authorize_url, "request": request}
+            "index.html", {"github_authorize_url": github_authorize_url, "github_authorize_url_rails": github_authorize_url_rails, "github_authorize_url_django": github_authorize_url_django, "request": request}
     )
 
 
@@ -108,12 +116,13 @@ async def githubcallback(request):
     headers = {"Authorization": f"token {access_token}"}
     headers["Accept"] = "application/vnd.github+json"
     # Create unique repo name
-    random_string = secrets.token_urlsafe(5).lower()
+    random_string = secrets.token_urlsafe(5).lower().replace("_","")
+    app_url = f"https://container-{random_string}.containers.anotherwebservice.com/"
     repo_name = f"container-{random_string}"
     data = {
         "name": repo_name,
         "description": "Created using https://container-hosting.anotherwebservice.com/#start",
-        "homepage": f"https://container-{random_string}.containers.anotherwebservice.com/#start",
+        "homepage": app_url,
         "private": False,
         "has_issues": True,
         "has_projects": True,
@@ -170,6 +179,7 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
+
     # Create repo secrets
     req = requests.get(
         f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/public-key",
@@ -206,6 +216,18 @@ async def githubcallback(request):
         headers=headers,
         data=json.dumps(data),
     )
+    # Set Repo Secret DOKKU_HOST
+    DOKKU_HOST_Encrypted = encrypt_github_secret(
+        github_repo_public_key, DOKKU_HOST)
+    data = {
+        "encrypted_value": DOKKU_HOST_Encrypted,
+        "key_id": github_repo_public_key_id,
+    }
+    req = requests.put(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/DOKKU_HOST",
+        headers=headers,
+        data=json.dumps(data),
+    )
 
     # Set Repo Secret DOKKU_HOST
     DOKKU_HOST_Encrypted = encrypt_github_secret(
@@ -220,9 +242,13 @@ async def githubcallback(request):
         data=json.dumps(data),
     )
 
+
     # Create README.md
+    REPO_CLONE_URL = f"git@github.com:{username}/{repo_name}.git"
     with open("./repo-template-files/README.md") as fp:
         readme_md = fp.read()
+        readme_md = readme_md.replace("APP_URL", app_url)
+        readme_md = readme_md.replace("REPO_CLONE_URL", REPO_CLONE_URL)
         readme_md_b64 = b64encode(readme_md.encode("utf-8")).decode("utf-8")
         data = {
             "message": "create README.md",
@@ -252,6 +278,122 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
+    # Create docker-compose.yml github workflow
+    with open("./repo-template-files/docker-compose.yml") as fp:
+        docker_compose_yml = fp.read()
+        docker_compose_yml = docker_compose_yml.replace("APP_NAME", repo_name)
+        docker_compose_yml_b64 = b64encode(docker_compose_yml.encode("utf-8")).decode("utf-8")
+        data = {
+            "message": "create .docker-compose.yml",
+            "committer": {"name": username, "email": email},
+            "content": docker_compose_yml_b64,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/contents/docker-compose.yml",
+            headers=headers,
+            data=json.dumps(data),
+        )
+
+    # Create SQL/"newSQL" database for container
+    try:
+        req = requests.post("https://db.anotherwebservice.com/?json=1")
+        db_settings = req.json()
+        db_hostname = db_settings["hostname"]
+        db_port = db_settings["port"]
+        db_name = db_settings["db_name"]
+        db_username = db_settings["username"]
+        db_password = db_settings["password"]
+
+        # Note we prepend the word "RAILS" but when used, rails
+        # needs the ENV variable name to be DATABASE_URL
+        RAILS_DATABASE_URL = f"mysql2://{db_username}:{db_password}@{db_hostname}:{db_port}/{db_name}?pool=5"
+
+        # Set Repo Secret RAILS_DATABASE_URL
+        RAILS_DATABASE_URL_Encrypted = encrypt_github_secret(
+            github_repo_public_key, RAILS_DATABASE_URL)
+        data = {
+            "encrypted_value": RAILS_DATABASE_URL_Encrypted,
+            "key_id": github_repo_public_key_id,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/RAILS_DATABASE_URL",
+            headers=headers,
+            data=json.dumps(data),
+        )
+        
+        def github_store_secret(SECRET_NAME, SECRET_VALUE: str):
+            secret_Encrypted = encrypt_github_secret(
+                github_repo_public_key, SECRET_VALUE)
+            data = {
+                "encrypted_value": secret_Encrypted,
+                "key_id": github_repo_public_key_id,
+            }
+            req = requests.put(
+                f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/{SECRET_NAME}",
+                headers=headers,
+                data=json.dumps(data),
+            )
+
+        DJANGO_SECRET_KEY = secrets.token_urlsafe(30)
+        github_store_secret("DJANGO_SECRET_KEY", DJANGO_SECRET_KEY)
+        DJANGO_DEBUG = "True"
+        github_store_secret("DJANGO_DEBUG", DJANGO_DEBUG)
+        DJANGO_ENGINE = "django.db.backends.mysql"
+        github_store_secret("DJANGO_ENGINE", DJANGO_ENGINE)
+        DJANGO_DB_NAME = db_name
+        github_store_secret("DJANGO_DB_NAME", DJANGO_DB_NAME)
+        DJANGO_DB_USER = db_username
+        github_store_secret("DJANGO_DB_USER", DJANGO_DB_USER)
+        DJANGO_DB_PASSWORD = db_password
+        github_store_secret("DJANGO_DB_PASSWORD", DJANGO_DB_PASSWORD)
+        DJANGO_DB_PORT = db_port
+        github_store_secret("DJANGO_DB_PORT", DJANGO_DB_PORT)
+    except Exception as e:
+        print(f"Error getting db settings {e}")
+
+    # Create framework quickstart if requested
+    """
+    1. Clone their repo (the one we just created for them)
+    2. git add framework quickstart files
+    3. commit
+    3. push
+    """
+    if 'rails' in state:
+        # Clone their repo we just created
+        repo = Repo.clone_from(f"https://{access_token}@github.com/{username}/{repo_name}.git", f"./tmp-cloned-repos/{repo_name}")
+        # add framework quickstart files
+        shutil.copytree(f"{BASE_PATH}/repo-template-files/quickstarts/rails-quickstart/src", f"./tmp-cloned-repos/{repo_name}/src", dirs_exist_ok=True)
+        # add/commit framework files to repo
+        index = repo.index
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/app'])
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh'])
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile'])
+        index.commit("Added rails quickstart")
+        # git push framework quickstart to repo
+        origin = repo.remotes[0]
+        repo.heads.main.set_tracking_branch(origin.refs.main)
+        push = origin.push()[0]
+        print(push.summary)
+
+    if 'django' in state:
+        # Clone their repo we just created
+        repo = Repo.clone_from(f"https://{access_token}@github.com/{username}/{repo_name}.git", f"./tmp-cloned-repos/{repo_name}")
+        # add framework quickstart files
+        shutil.copytree(f"{BASE_PATH}/repo-template-files/quickstarts/django-quickstart/src", f"./tmp-cloned-repos/{repo_name}/src", dirs_exist_ok=True)
+        # add/commit framework files to repo
+        index = repo.index
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/web'])
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh'])
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile'])
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt'])
+        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/wait-for.sh'])
+        index.commit("Added django quickstart")
+        # git push framework quickstart to repo
+        origin = repo.remotes[0]
+        repo.heads.main.set_tracking_branch(origin.refs.main)
+        push = origin.push()[0]
+        print(push.summary)
+
     # Create deploy.yml github workflow
     with open("./repo-template-files/.github/workflows/deploy.yml") as fp:
         deploy_yml = fp.read()
@@ -271,6 +413,7 @@ async def githubcallback(request):
             headers=headers,
             data=json.dumps(data),
         )
+
 
     # Get the deploy workflow id
     import time;time.sleep(3) # TODO hook/poll
