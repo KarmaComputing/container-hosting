@@ -1,30 +1,44 @@
 #! /usr/bin/python3.8
 import sys
 import subprocess
+import sqlite3
 import json
+
+api_key_to_container = {}
+
+# Example mapping between secret api keys to container app names
+"""
+api_key_to_container = {
+    "secret_ffdb467952c9309403dc94c59729f9275d82d59ce635b2dc2b07dcc32a95": {
+        "APP_NAME": "container-id1bklk",
+        "APP_URL": "container-id1bklk.containers.anotherwebservice.com",
+        "RAILS_DEVELOPMENT_HOSTS": "container-id1bklk.containers.anotherwebservice.com",
+        "RAILS_DATABASE_URL": "",
+        "DJANGO_SECRET_KEY":"",
+        "ALLOWED_HOSTS":"",
+        "DEBUG": "",
+        "DJANGO_ENGINE": "",
+        "DJANGO_DB_NAME": "",
+        "DJANGO_DB_HOST": "",
+        "DJANGO_DB_USER": "",
+        "DJANGO_DB_PASSWORD": "",
+        "GITHUB_USERNAME": ""
+    }
+}
+"""
+con = sqlite3.connect("containers.db")
+cur = con.cursor()
+
+for row in cur.execute('SELECT * FROM container'):
+    container = json.loads(row[0])
+    api_key_to_container[[*container.keys()][0]] = container[[*container.keys()][0]]
+
 
 print("In dokku-wrapper.py")
 
 unsafe_api_key = sys.argv[1]
 print(f"Checking unsafe_api_key: {unsafe_api_key}")
 
-# Mapping between secret api keys to container app names
-with open("api_key_to_container.json") as fp:
-    api_key_to_container = json.loads(fp.read())
-    """
-    Example datastructure: api_key_to_container.json
-    api_key_to_container = {
-        "secret_ffdb467952c9309403dc94c59729f9275d82d59ce635b2dc2b07dcc32a95": {
-            "APP_NAME": "container-abc123",
-            "APP_URL": "container-abc123.containers.anotherwebservice.com",
-            "RAILS_DEVELOPMENT_HOSTS": "container-abc123.containers.anotherwebservice.com",
-            "RAILS_DATABASE_URL": "",
-            "DJANGO_SECRET_KEY":"",
-            "ALLOWED_HOSTS":"",
-            "DEBUG": "",
-        }
-    }
-    """
 
 try:
     APP_NAME = api_key_to_container[unsafe_api_key]
