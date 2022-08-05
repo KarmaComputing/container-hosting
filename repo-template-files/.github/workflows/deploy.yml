@@ -33,10 +33,12 @@ jobs:
           # Database connection string (rails)
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DATABASE_URL=${{ secrets.RAILS_DATABASE_URL }}"
           # Database connection string (django)
-          ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY}}"
+          ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY}}"
+          ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME ALLOWED_HOSTS='DJANGO_ALLOWED_HOSTS'"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DEBUG=${{ secrets.DJANGO_DEBUG}}"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DB_ENGINE=${{ secrets.DJANGO_ENGINE}}"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DB_NAME=${{ secrets.DJANGO_DB_NAME}}"
+          ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DB_HOST=${{ secrets.DJANGO_DB_HOST }}"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DB_USER=${{ secrets.DJANGO_DB_USER}}"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DB_PASSWORD=${{ secrets.DJANGO_DB_PASSWORD}}"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku config:set --no-restart APP_NAME DB_PORT=${{ secrets.DJANGO_DB_PORT}}"
