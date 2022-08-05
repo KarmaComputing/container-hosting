@@ -32,6 +32,7 @@ DOKKU_HOST_SSH_ENDPOINT = os.getenv("DOKKU_HOST_SSH_ENDPOINT")
 
 # See https://github.com/dokku/dokku-letsencrypt/pull/211
 
+
 def generate_ssh_keys():
     """Generate public/private ssh keys
 
@@ -70,8 +71,7 @@ def encrypt_github_secret(public_key: str, secret_value: str) -> str:
 
 
 def github_store_secret(SECRET_NAME, SECRET_VALUE: str):
-    secret_Encrypted = encrypt_github_secret(
-        github_repo_public_key, SECRET_VALUE)
+    secret_Encrypted = encrypt_github_secret(github_repo_public_key, SECRET_VALUE)
     data = {
         "encrypted_value": secret_Encrypted,
         "key_id": github_repo_public_key_id,
@@ -97,7 +97,13 @@ async def homepage(request):
     github_authorize_url_django = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_django}&scope=repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
-            "index.html", {"github_authorize_url": github_authorize_url, "github_authorize_url_rails": github_authorize_url_rails, "github_authorize_url_django": github_authorize_url_django, "request": request}
+        "index.html",
+        {
+            "github_authorize_url": github_authorize_url,
+            "github_authorize_url_rails": github_authorize_url_rails,
+            "github_authorize_url_django": github_authorize_url_django,
+            "request": request,
+        },
     )
 
 
@@ -132,7 +138,7 @@ async def githubcallback(request):
     # Create api key for container-hosting
     CONTAINER_HOSTING_API_KEY = f"secret_{secrets.token_urlsafe(60)}"
     # Create unique repo name
-    random_string = secrets.token_urlsafe(5).lower().replace("_","")
+    random_string = secrets.token_urlsafe(5).lower().replace("_", "")
     app_host = f"container-{random_string}.containers.anotherwebservice.com"
     app_url = f"https://container-{random_string}.containers.anotherwebservice.com/"
     repo_name = f"container-{random_string}"
@@ -196,7 +202,6 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
-
     # Create repo secrets
     req = requests.get(
         f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/public-key",
@@ -211,7 +216,7 @@ async def githubcallback(request):
     public_key = f'no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding {public_key.decode("utf-8")}'
     # POST public key to DOKKU_HOST_SSH_ENDPOINT
     data = {"public_key": public_key}
-    req = requests.post(DOKKU_HOST_SSH_ENDPOINT,json=data)
+    req = requests.post(DOKKU_HOST_SSH_ENDPOINT, json=data)
     # Write out private_key
     with open("./private_key", "wb") as fp:
         fp.write(private_key)
@@ -233,32 +238,9 @@ async def githubcallback(request):
         headers=headers,
         data=json.dumps(data),
     )
-    # Set Repo Secret DOKKU_HOST
-    DOKKU_HOST_Encrypted = encrypt_github_secret(
-        github_repo_public_key, DOKKU_HOST)
-    data = {
-        "encrypted_value": DOKKU_HOST_Encrypted,
-        "key_id": github_repo_public_key_id,
-    }
-    req = requests.put(
-        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/DOKKU_HOST",
-        headers=headers,
-        data=json.dumps(data),
-    )
 
     # Set Repo Secret DOKKU_HOST
-    DOKKU_HOST_Encrypted = encrypt_github_secret(
-        github_repo_public_key, DOKKU_HOST)
-    data = {
-        "encrypted_value": DOKKU_HOST_Encrypted,
-        "key_id": github_repo_public_key_id,
-    }
-    req = requests.put(
-        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/DOKKU_HOST",
-        headers=headers,
-        data=json.dumps(data),
-    )
-
+    github_store_secret("DOKKU_HOST", DOKKU_HOST)
 
     # Create README.md
     REPO_CLONE_URL = f"git@github.com:{username}/{repo_name}.git"
@@ -299,7 +281,9 @@ async def githubcallback(request):
     with open("./repo-template-files/docker-compose.yml") as fp:
         docker_compose_yml = fp.read()
         docker_compose_yml = docker_compose_yml.replace("APP_NAME", repo_name)
-        docker_compose_yml_b64 = b64encode(docker_compose_yml.encode("utf-8")).decode("utf-8")
+        docker_compose_yml_b64 = b64encode(docker_compose_yml.encode("utf-8")).decode(
+            "utf-8"
+        )
         data = {
             "message": "create .docker-compose.yml",
             "committer": {"name": username, "email": email},
@@ -326,7 +310,6 @@ async def githubcallback(request):
         RAILS_DATABASE_URL = f"mysql2://{db_username}:{db_password}@{db_hostname}:{db_port}/{db_name}?pool=5"
         github_store_secret("RAILS_DATABASE_URL", RAILS_DATABASE_URL)
 
-        
         DJANGO_ALLOWED_HOSTS = app_host
         github_store_secret("DJANGO_ALLOWED_HOSTS", app_host)
         DJANGO_SECRET_KEY = secrets.token_urlsafe(30)
@@ -355,16 +338,23 @@ async def githubcallback(request):
     3. commit
     3. push
     """
-    if 'rails' in state:
+    if "rails" in state:
         # Clone their repo we just created
-        repo = Repo.clone_from(f"https://{access_token}@github.com/{username}/{repo_name}.git", f"./tmp-cloned-repos/{repo_name}")
+        repo = Repo.clone_from(
+            f"https://{access_token}@github.com/{username}/{repo_name}.git",
+            f"./tmp-cloned-repos/{repo_name}",
+        )
         # add framework quickstart files
-        shutil.copytree(f"{BASE_PATH}/repo-template-files/quickstarts/rails-quickstart/src", f"./tmp-cloned-repos/{repo_name}/src", dirs_exist_ok=True)
+        shutil.copytree(
+            f"{BASE_PATH}/repo-template-files/quickstarts/rails-quickstart/src",
+            f"./tmp-cloned-repos/{repo_name}/src",
+            dirs_exist_ok=True,
+        )
         # add/commit framework files to repo
         index = repo.index
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/app'])
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh'])
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile'])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/app"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile"])
         index.commit("Added rails quickstart")
         # git push framework quickstart to repo
         origin = repo.remotes[0]
@@ -372,18 +362,25 @@ async def githubcallback(request):
         push = origin.push()[0]
         print(push.summary)
 
-    if 'django' in state:
+    if "django" in state:
         # Clone their repo we just created
-        repo = Repo.clone_from(f"https://{access_token}@github.com/{username}/{repo_name}.git", f"./tmp-cloned-repos/{repo_name}")
+        repo = Repo.clone_from(
+            f"https://{access_token}@github.com/{username}/{repo_name}.git",
+            f"./tmp-cloned-repos/{repo_name}",
+        )
         # add framework quickstart files
-        shutil.copytree(f"{BASE_PATH}/repo-template-files/quickstarts/django-quickstart/src", f"./tmp-cloned-repos/{repo_name}/src", dirs_exist_ok=True)
+        shutil.copytree(
+            f"{BASE_PATH}/repo-template-files/quickstarts/django-quickstart/src",
+            f"./tmp-cloned-repos/{repo_name}/src",
+            dirs_exist_ok=True,
+        )
         # add/commit framework files to repo
         index = repo.index
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/web'])
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh'])
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile'])
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt'])
-        index.add([f'{BASE_PATH}tmp-cloned-repos/{repo_name}/src/wait-for.sh'])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/web"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/wait-for.sh"])
         index.commit("Added django quickstart")
         # git push framework quickstart to repo
         origin = repo.remotes[0]
@@ -412,15 +409,23 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
-
     # Get the deploy workflow id
-    import time;time.sleep(3) # TODO hook/poll
-    req = requests.get(f"https://api.github.com/repos/{username}/{repo_name}/actions/workflows", headers=headers)
-    deploy_workflow_id = req.json()['workflows'][0]['id']
-    # Start the deploy.yml workflow action
-    data = {"ref":"main"}
+    import time
 
-    req = requests.post(f'https://api.github.com/repos/{username}/{repo_name}/actions/workflows/{deploy_workflow_id}/dispatches', headers=headers, data=json.dumps(data))
+    time.sleep(3)  # TODO hook/poll
+    req = requests.get(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/workflows",
+        headers=headers,
+    )
+    deploy_workflow_id = req.json()["workflows"][0]["id"]
+    # Start the deploy.yml workflow action
+    data = {"ref": "main"}
+
+    req = requests.post(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/workflows/{deploy_workflow_id}/dispatches",
+        headers=headers,
+        data=json.dumps(data),
+    )
 
     return templates.TemplateResponse(
         "welcome.html", {"repo_url": repo_url, "request": request}
