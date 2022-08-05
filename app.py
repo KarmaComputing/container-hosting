@@ -30,6 +30,7 @@ GITHUB_OAUTH_REDIRECT_URI = os.getenv("GITHUB_OAUTH_REDIRECT_URI")
 DOKKU_HOST = os.getenv("DOKKU_HOST")
 DOKKU_HOST_SSH_ENDPOINT = os.getenv("DOKKU_HOST_SSH_ENDPOINT")
 
+# See https://github.com/dokku/dokku-letsencrypt/pull/211
 
 def generate_ssh_keys():
     """Generate public/private ssh keys
@@ -67,6 +68,19 @@ def encrypt_github_secret(public_key: str, secret_value: str) -> str:
     encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
     return b64encode(encrypted).decode("utf-8")
 
+
+def github_store_secret(SECRET_NAME, SECRET_VALUE: str):
+    secret_Encrypted = encrypt_github_secret(
+        github_repo_public_key, SECRET_VALUE)
+    data = {
+        "encrypted_value": secret_Encrypted,
+        "key_id": github_repo_public_key_id,
+    }
+    req = requests.put(
+        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/{SECRET_NAME}",
+        headers=headers,
+        data=json.dumps(data),
+    )
 
 
 async def homepage(request):
@@ -115,8 +129,11 @@ async def githubcallback(request):
     # Use access token
     headers = {"Authorization": f"token {access_token}"}
     headers["Accept"] = "application/vnd.github+json"
+    # Create api key for container-hosting
+    CONTAINER_HOSTING_API_KEY = f"secret_{secrets.token_urlsafe(60)}"
     # Create unique repo name
     random_string = secrets.token_urlsafe(5).lower().replace("_","")
+    app_host = f"container-{random_string}.containers.anotherwebservice.com"
     app_url = f"https://container-{random_string}.containers.anotherwebservice.com/"
     repo_name = f"container-{random_string}"
     data = {
@@ -307,39 +324,19 @@ async def githubcallback(request):
         # Note we prepend the word "RAILS" but when used, rails
         # needs the ENV variable name to be DATABASE_URL
         RAILS_DATABASE_URL = f"mysql2://{db_username}:{db_password}@{db_hostname}:{db_port}/{db_name}?pool=5"
+        github_store_secret("RAILS_DATABASE_URL", RAILS_DATABASE_URL)
 
-        # Set Repo Secret RAILS_DATABASE_URL
-        RAILS_DATABASE_URL_Encrypted = encrypt_github_secret(
-            github_repo_public_key, RAILS_DATABASE_URL)
-        data = {
-            "encrypted_value": RAILS_DATABASE_URL_Encrypted,
-            "key_id": github_repo_public_key_id,
-        }
-        req = requests.put(
-            f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/RAILS_DATABASE_URL",
-            headers=headers,
-            data=json.dumps(data),
-        )
         
-        def github_store_secret(SECRET_NAME, SECRET_VALUE: str):
-            secret_Encrypted = encrypt_github_secret(
-                github_repo_public_key, SECRET_VALUE)
-            data = {
-                "encrypted_value": secret_Encrypted,
-                "key_id": github_repo_public_key_id,
-            }
-            req = requests.put(
-                f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/{SECRET_NAME}",
-                headers=headers,
-                data=json.dumps(data),
-            )
-
+        DJANGO_ALLOWED_HOSTS = app_host
+        github_store_secret("DJANGO_ALLOWED_HOSTS", app_host)
         DJANGO_SECRET_KEY = secrets.token_urlsafe(30)
         github_store_secret("DJANGO_SECRET_KEY", DJANGO_SECRET_KEY)
         DJANGO_DEBUG = "True"
         github_store_secret("DJANGO_DEBUG", DJANGO_DEBUG)
         DJANGO_ENGINE = "django.db.backends.mysql"
         github_store_secret("DJANGO_ENGINE", DJANGO_ENGINE)
+        DJANGO_DB_HOST = db_hostname
+        github_store_secret("DJANGO_DB_HOST", DJANGO_DB_HOST)
         DJANGO_DB_NAME = db_name
         github_store_secret("DJANGO_DB_NAME", DJANGO_DB_NAME)
         DJANGO_DB_USER = db_username
@@ -402,6 +399,7 @@ async def githubcallback(request):
         # the REPO_NAME.
         deploy_yml = deploy_yml.replace("APP_NAME", repo_name)
         deploy_yml = deploy_yml.replace("REPO_NAME", repo_name)
+        deploy_yml = deploy_yml.replace("DJANGO_ALLOWED_HOSTS", DJANGO_ALLOWED_HOSTS)
         deploy_yml_b64 = b64encode(deploy_yml.encode("utf-8")).decode("utf-8")
         data = {
             "message": "create deploy.yml",
