@@ -25,12 +25,12 @@ A simple container hosting platform.
 Work in progress: Automated quickstart of popular web frameworks (with Dockerfile + example code)
 <ul>
     <li>Flask App quickstart(Python)</li>
-    <li><a href="{{ github_authorize_url_django }}">Django App quickstart (Python)</a></li>
+    <li><a class="debounce" href="{{ github_authorize_url_django }}">Django App quickstart (Python)</a></li>
     <li>Laravel App quickstart (PHP)</li>
     <li>Express App quickstart (Node.js)</li>
     <li>Rocket App quickstart (Rust)</li>
-    <li><a id="debounce" href="{{ github_authorize_url_rails }}">Rails quickstart (Ruby)</a></li>
-    <li><a href="github_authorize_url">No Framework</a> (bring your own)</li>
+    <li><a class="debounce" href="{{ github_authorize_url_rails }}">Rails quickstart (Ruby)</a></li>
+    <li><a class="debounce" href="{{ github_authorize_url }}">No Framework</a> (bring your own)</li>
 </ul>
 
 
@@ -60,13 +60,20 @@ Work in progress: Automated quickstart of popular web frameworks (with Dockerfil
 	</ul>
 </details>
 
+<h4>Is this real?</h4>
+<p>Yes.</p>
+
 <script>
-document.getElementById("debounce").addEventListener("click", function(e) {
-    e.target.innerHTML = "Please wait";
-    destination = e.target.href;
-    e.target.href="#";
-    document.location = destination;
-});
+debounceLinks = document.getElementsByClassName("debounce");
+for (i=0;i<debounceLinks.length;i++){
+	console.log(debounceLinks[i]);
+	debounceLinks[i].addEventListener("click", function(e) {
+	    e.target.innerHTML = "Please wait";
+	    destination = e.target.href;
+	    e.target.href="#";
+	    document.location = destination;
+	});
+}
 </script>
 
 </html>
