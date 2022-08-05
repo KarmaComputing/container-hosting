@@ -70,19 +70,6 @@ def encrypt_github_secret(public_key: str, secret_value: str) -> str:
     return b64encode(encrypted).decode("utf-8")
 
 
-def github_store_secret(SECRET_NAME, SECRET_VALUE: str):
-    secret_Encrypted = encrypt_github_secret(github_repo_public_key, SECRET_VALUE)
-    data = {
-        "encrypted_value": secret_Encrypted,
-        "key_id": github_repo_public_key_id,
-    }
-    req = requests.put(
-        f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/{SECRET_NAME}",
-        headers=headers,
-        data=json.dumps(data),
-    )
-
-
 async def homepage(request):
     """Homepage and display connect Github link"""
     body = await request.body()
@@ -209,6 +196,18 @@ async def githubcallback(request):
     ).json()
     github_repo_public_key = req["key"]
     github_repo_public_key_id = req["key_id"]
+
+    def github_store_secret(SECRET_NAME, SECRET_VALUE: str):
+        secret_Encrypted = encrypt_github_secret(github_repo_public_key, SECRET_VALUE)
+        data = {
+            "encrypted_value": secret_Encrypted,
+            "key_id": github_repo_public_key_id,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/{SECRET_NAME}",
+            headers=headers,
+            data=json.dumps(data),
+        )
 
     # Create DOKKU_SSH_PRIVATE_KEY
     public_key, private_key = generate_ssh_keys()
