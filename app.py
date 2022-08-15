@@ -29,6 +29,9 @@ GITHUB_OAUTH_CLIENT_SECRET = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
 GITHUB_OAUTH_REDIRECT_URI = os.getenv("GITHUB_OAUTH_REDIRECT_URI")
 DOKKU_HOST = os.getenv("DOKKU_HOST")
 DOKKU_HOST_SSH_ENDPOINT = os.getenv("DOKKU_HOST_SSH_ENDPOINT")
+CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY = os.getenv(
+    "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY"
+)
 
 # See https://github.com/dokku/dokku-letsencrypt/pull/211
 
@@ -214,7 +217,10 @@ async def githubcallback(request):
     # Restrict public_key ssh commands
     public_key = f'no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding {public_key.decode("utf-8")}'
     # POST public key to DOKKU_HOST_SSH_ENDPOINT
-    data = {"public_key": public_key}
+    data = {
+        "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
+        "public_key": public_key,
+    }
     req = requests.post(DOKKU_HOST_SSH_ENDPOINT, json=data)
     # Write out private_key
     with open("./private_key", "wb") as fp:
