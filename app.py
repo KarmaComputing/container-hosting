@@ -32,6 +32,7 @@ DOKKU_HOST_SSH_ENDPOINT = os.getenv("DOKKU_HOST_SSH_ENDPOINT")
 CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY = os.getenv(
     "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY"
 )
+DOKKU_WRAPPER_FULL_PATH =os.getenv("DOKKU_WRAPPER_FULL_PATH")
 
 # See https://github.com/dokku/dokku-letsencrypt/pull/211
 
@@ -215,7 +216,7 @@ async def githubcallback(request):
     # Create DOKKU_SSH_PRIVATE_KEY
     public_key, private_key = generate_ssh_keys()
     # Restrict public_key ssh commands
-    public_key = f'no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding {public_key.decode("utf-8")}'
+    public_key = f'command="{DOKKU_WRAPPER_FULL_PATH}",no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding {public_key.decode("utf-8")}'
     # POST public key to DOKKU_HOST_SSH_ENDPOINT
     data = {
         "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
