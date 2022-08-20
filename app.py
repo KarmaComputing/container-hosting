@@ -223,6 +223,15 @@ async def githubcallback(request):
         "public_key": public_key,
     }
     req = requests.post(DOKKU_HOST_SSH_ENDPOINT, json=data)
+    # POST CONTAINER_HOSTING_API_KEY to DOKKU_HOST_SSH_ENDPOINT
+    data = {
+        "api_key": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
+        "APP_NAME": repo_name,
+        "CONTAINER_HOSTING_API_KEY": CONTAINER_HOSTING_API_KEY
+    }
+    breakpoint()
+    req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/CONTAINER_HOSTING_API_KEY', json=data)
+
     # Write out private_key
     with open("./private_key", "wb") as fp:
         fp.write(private_key)
