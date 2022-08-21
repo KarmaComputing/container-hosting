@@ -1,21 +1,28 @@
 #! /usr/bin/python3.8
-import sys
 import subprocess
 import sqlite3
 import json
+import os
+import logging
+import shlex
 
 print("In dokku-wrapper.py")
+# print(os.getenv("SSH_ORIGINAL_COMMAND"))
 
-#https://github.com/pyca/pynacl/issues/192
+unsafe_SSH_ORIGINAL_COMMAND = os.getenv("SSH_ORIGINAL_COMMAND")
+unsafe_api_key = str(unsafe_SSH_ORIGINAL_COMMAND[0:87])
+
+
+# https://github.com/pyca/pynacl/issues/192
 
 api_key_to_container = {}
 # Example mapping between secret api keys to container app names
 """
 api_key_to_container = {
     "secret_ffdb467952c9309403dc94c59729f9275d82d59ce635b2dc2b07dcc32a95": {
-        "APP_NAME": "container-id1bklk",
-        "APP_URL": "container-id1bklk.containers.anotherwebservice.com",
-        "RAILS_DEVELOPMENT_HOSTS": "container-id1bklk.containers.anotherwebservice.com",
+        "APP_NAME": "container-okt2ri4",
+        "APP_URL": "container-okt2ri4.containers.anotherwebservice.com",
+        "RAILS_DEVELOPMENT_HOSTS": "container-okt2ri4.containers.anotherwebservice.com",
         "RAILS_DATABASE_URL": "",
         "DJANGO_SECRET_KEY":"",
         "ALLOWED_HOSTS":"",
@@ -32,41 +39,43 @@ api_key_to_container = {
 con = sqlite3.connect("containers.db")
 cur = con.cursor()
 
-for row in cur.execute('SELECT * FROM container'):
-    container = json.loads(row[0])
-    api_key_to_container[[*container.keys()][0]] = container[[*container.keys()][0]]
+# print(f"Checking unsafe_api_key: {unsafe_api_key}")
+cur.execute(
+    "SELECT * FROM container WHERE CONTAINER_HOSTING_API_KEY = ?", (unsafe_api_key,)
+)
 
+APP_FOUND = False
+for row in cur.fetchall():
+    try:
+        container = json.loads(row[0])
+        APP_NAME = container["APP_NAME"]
+        CONTAINER_HOSTING_API_KEY = row[1]
+        APP_FOUND = True
 
+    except json.decoder.JSONDecodeError as e:
+        logging.error(f"json.decoder.JSONDecodeError: {e}")
 
-unsafe_api_key = sys.argv[1]
-print(f"Checking unsafe_api_key: {unsafe_api_key}")
-
-
-try:
-    APP_NAME = api_key_to_container[unsafe_api_key]
-except KeyError as e:
-    print("Invalid api key")
+if APP_FOUND is False:
+    logging.error("Unable to find app")
+    print("Unable to find app, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
     exit()
 
 print("Valid api key")
 
 try:
-    APP_NAME = api_key_to_container[unsafe_api_key]['APP_NAME']
-    GITHUB_USERNAME = api_key_to_container[unsafe_api_key]["GITHUB_USERNAME"]
-    print(f"app_name: {APP_NAME}")
+    print(f"Located APP_NAME: {APP_NAME}")
 except KeyError as e:
     print(f"Error getting app setting: {e}")
     exit()
 
-unsafe_requested_command = ''
-MAX_ARGS=7
-if len(sys.argv) > MAX_ARGS:
-    print(f"Too many args. Got {len(sys.argv)} expected {MAX_ARGS}")
+unsafe_requested_command = unsafe_SSH_ORIGINAL_COMMAND[88:]
+MAX_LENGTH = 150
+if len(unsafe_requested_command) > MAX_LENGTH:
+    print(
+        f"Command too long. Got: {len(unsafe_requested_command)}. MAX_LENGTH: {MAX_LENGTH}"
+    )
     exit()
 
-for arg in sys.argv[2:MAX_ARGS]:
-    unsafe_requested_command += f"{arg} "
-unsafe_requested_command = unsafe_requested_command.strip()
 
 commands_allowlist = [
     "dokku apps:create APP_NAME",
@@ -85,24 +94,33 @@ commands_allowlist = [
     "dokku config:set --no-restart APP_NAME DB_USER=DJANGO_DB_USER",
     "dokku config:set --no-restart APP_NAME DB_PASSWORD=DJANGO_DB_PASSWORD",
     "dokku config:set --no-restart APP_NAME DB_PORT=DJANGO_DB_PORT",
-    ]
+]
 
 valid_command = False
 
+possible_commands = []
 for allowed_command in commands_allowlist:
-    allowed_command = allowed_command.replace("APP_NAME", APP_NAME).replace("GITHUB_USERNAME", GITHUB_USERNAME)
-    print(f"Comparing: {allowed_command} with {unsafe_requested_command}")
-    if allowed_command ==  unsafe_requested_command:
-        valid_command = True
-        break;
+    possible_commands.append(allowed_command.replace("APP_NAME", APP_NAME))
+
+if unsafe_requested_command in possible_commands:
+    valid_command = True
+    print("Valid command")
+    print(f"Allowed command: {unsafe_requested_command}")
+    # del SSH_ORIGINAL_COMMAND from environ otherwise
+    # otherwise arg $1 which is CONTAINER_HOSTING_API_KEY gets passed to
+    # dokku src:
+    # https://github.com/dokku/dokku/blob/6a3933213c70a142587418bcf84835c832b09feb/dokku#L118
+    del os.environ["SSH_ORIGINAL_COMMAND"]
+    # Get final_command from commands_allowlist -> possible_commands
+    final_command = possible_commands[possible_commands.index(unsafe_requested_command)]
+    # See https://docs.python.org/3/library/subprocess.html#security-considerations
+    final_command = shlex.split(final_command)
+    print(f"Running: {final_command}")
+    subprocess.run(final_command)
+
 
 if valid_command is False:
     print("Invalid command. Possible commands are:")
     for possible_command in commands_allowlist:
-        print(possible_command.replace("APP_NAME", APP_NAME).replace("GITHUB_USERNAME", GITHUB_USERNAME))
+        print(possible_command.replace("APP_NAME", APP_NAME))
     exit()
-else:
-    print("Valid command")
-    print(f"Allowed command: {allowed_command}")
-    print("Running command")
-    subprocess.run(allowed_command, shell=True)
