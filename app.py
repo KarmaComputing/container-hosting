@@ -18,6 +18,7 @@ import shutil
 
 import secrets
 from dotenv import load_dotenv
+import time
 
 load_dotenv(verbose=True)
 
@@ -229,7 +230,6 @@ async def githubcallback(request):
         "APP_NAME": repo_name,
         "CONTAINER_HOSTING_API_KEY": CONTAINER_HOSTING_API_KEY
     }
-    breakpoint()
     req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/CONTAINER_HOSTING_API_KEY', json=data)
 
     # Write out private_key
@@ -275,22 +275,6 @@ async def githubcallback(request):
             data=json.dumps(data),
         )
 
-    # Create release.yml github workflow
-    with open("./repo-template-files/.github/workflows/release.yml") as fp:
-        release_yml = fp.read()
-        release_yml = release_yml.replace("GITHUB_OWNER", username)
-        release_yml = release_yml.replace("GITHUB_REPO_NAME", repo_name)
-        release_yml_b64 = b64encode(release_yml.encode("utf-8")).decode("utf-8")
-        data = {
-            "message": "create .release_yml",
-            "committer": {"name": username, "email": email},
-            "content": release_yml_b64,
-        }
-        req = requests.put(
-            f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/release.yml",
-            headers=headers,
-            data=json.dumps(data),
-        )
 
     # Create docker-compose.yml github workflow
     with open("./repo-template-files/docker-compose.yml") as fp:
@@ -353,12 +337,13 @@ async def githubcallback(request):
     3. commit
     3. push
     """
+    # Clone their repo we just created
+    repo = Repo.clone_from(
+        f"https://{access_token}@github.com/{username}/{repo_name}.git",
+        f"./tmp-cloned-repos/{repo_name}",
+    )
+
     if "rails" in state:
-        # Clone their repo we just created
-        repo = Repo.clone_from(
-            f"https://{access_token}@github.com/{username}/{repo_name}.git",
-            f"./tmp-cloned-repos/{repo_name}",
-        )
         # add framework quickstart files
         shutil.copytree(
             f"{BASE_PATH}/repo-template-files/quickstarts/rails-quickstart/src",
@@ -371,18 +356,8 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh"])
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile"])
         index.commit("Added rails quickstart")
-        # git push framework quickstart to repo
-        origin = repo.remotes[0]
-        repo.heads.main.set_tracking_branch(origin.refs.main)
-        push = origin.push()[0]
-        print(push.summary)
 
     if "django" in state:
-        # Clone their repo we just created
-        repo = Repo.clone_from(
-            f"https://{access_token}@github.com/{username}/{repo_name}.git",
-            f"./tmp-cloned-repos/{repo_name}",
-        )
         # add framework quickstart files
         shutil.copytree(
             f"{BASE_PATH}/repo-template-files/quickstarts/django-quickstart/src",
@@ -397,13 +372,36 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt"])
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/wait-for.sh"])
         index.commit("Added django quickstart")
-        # git push framework quickstart to repo
-        origin = repo.remotes[0]
-        repo.heads.main.set_tracking_branch(origin.refs.main)
-        push = origin.push()[0]
-        print(push.summary)
 
-    # Create deploy.yml github workflow
+    #time.sleep(3)  # TODO hook/poll
+
+    # git push the repo
+    origin = repo.remotes[0]
+    repo.heads.main.set_tracking_branch(origin.refs.main)
+    fetch = origin.fetch()[0]
+    pull = origin.pull(rebase=True)[0]
+    print(pull.commit.summary)
+    push = origin.push()[0]
+    print(push.summary)
+
+    # Create release.yml github workflow
+    with open("./repo-template-files/.github/workflows/release.yml") as fp:
+        release_yml = fp.read()
+        release_yml = release_yml.replace("GITHUB_OWNER", username)
+        release_yml = release_yml.replace("GITHUB_REPO_NAME", repo_name)
+        release_yml_b64 = b64encode(release_yml.encode("utf-8")).decode("utf-8")
+        data = {
+            "message": "create .release_yml",
+            "committer": {"name": username, "email": email},
+            "content": release_yml_b64,
+        }
+        req = requests.put(
+            f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/release.yml",
+            headers=headers,
+            data=json.dumps(data),
+        )
+
+    # Create deploy.yml github workflow (last action- triggers first deploy pipeline)
     with open("./repo-template-files/.github/workflows/deploy.yml") as fp:
         deploy_yml = fp.read()
         deploy_yml = deploy_yml.replace("GITHUB_OWNER", username)
@@ -423,24 +421,6 @@ async def githubcallback(request):
             headers=headers,
             data=json.dumps(data),
         )
-
-    # Get the deploy workflow id
-    import time
-
-    time.sleep(3)  # TODO hook/poll
-    req = requests.get(
-        f"https://api.github.com/repos/{username}/{repo_name}/actions/workflows",
-        headers=headers,
-    )
-    deploy_workflow_id = req.json()["workflows"][0]["id"]
-    # Start the deploy.yml workflow action
-    data = {"ref": "main"}
-
-    req = requests.post(
-        f"https://api.github.com/repos/{username}/{repo_name}/actions/workflows/{deploy_workflow_id}/dispatches",
-        headers=headers,
-        data=json.dumps(data),
-    )
 
     return templates.TemplateResponse(
         "welcome.html", {"repo_url": repo_url, "request": request}
