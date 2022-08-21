@@ -6,7 +6,7 @@ import os
 import logging
 import shlex
 
-print("In dokku-wrapper.py")
+print("🐧 In dokku-wrapper.py")
 # print(os.getenv("SSH_ORIGINAL_COMMAND"))
 
 unsafe_SSH_ORIGINAL_COMMAND = os.getenv("SSH_ORIGINAL_COMMAND")
@@ -60,10 +60,10 @@ if APP_FOUND is False:
     print("Unable to find app, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
     exit()
 
-print("Valid api key")
+print("🔓 Valid api key")
 
 try:
-    print(f"Located APP_NAME: {APP_NAME}")
+    print(f"✅ Located APP_NAME: {APP_NAME}")
 except KeyError as e:
     print(f"Error getting app setting: {e}")
     exit()
@@ -104,8 +104,8 @@ for allowed_command in commands_allowlist:
 
 if unsafe_requested_command in possible_commands:
     valid_command = True
-    print("Valid command")
-    print(f"Allowed command: {unsafe_requested_command}")
+    print("✅ Valid command")
+    print(f"✅ Allowed command: {unsafe_requested_command}")
     # del SSH_ORIGINAL_COMMAND from environ otherwise
     # otherwise arg $1 which is CONTAINER_HOSTING_API_KEY gets passed to
     # dokku src:
@@ -115,8 +115,9 @@ if unsafe_requested_command in possible_commands:
     final_command = possible_commands[possible_commands.index(unsafe_requested_command)]
     # See https://docs.python.org/3/library/subprocess.html#security-considerations
     final_command = shlex.split(final_command)
-    print(f"Running: {final_command}")
+    print(f"⏳ Running: {final_command}")
     subprocess.run(final_command)
+    print(f"✨ Completed run")
 
 
 if valid_command is False:
