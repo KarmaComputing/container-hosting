@@ -37,6 +37,10 @@ DOKKU_WRAPPER_FULL_PATH =os.getenv("DOKKU_WRAPPER_FULL_PATH")
 
 # See https://github.com/dokku/dokku-letsencrypt/pull/211
 
+def amber_encrypt(key: str, value: str, amber_file_location = './amber.yaml'):
+    if os.getenv("AMBER_YAML") is not None:
+        amber_file_location = os.getenv("AMBER_YAML")
+    subprocess.run(["amber", "encrypt", "--amber-yaml", amber_file_location, key, value])
 
 def generate_ssh_keys():
     """Generate public/private ssh keys
@@ -159,6 +163,12 @@ async def githubcallback(request):
     )
     repo_url = req.json()["html_url"]
     print(repo_url)
+
+    # Setup secrets using amber
+    amber_secret_key = subprocess.run("amber init 2> /dev/null| sed 's/export AMBER_SECRET=//g'", shell=True, capture_output=True, cwd=f"./tmp-cloned-repos/{repo_name}")
+    amber_secret_key = amber_secret_key.stdout.strip().decode('utf-8')
+    github_store_secret("AMBER_SECRET", amber_secret_key)
+
 
     # Upload initial repo content
     with open("./repo-template-files/.autorc") as fp:
