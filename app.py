@@ -232,6 +232,9 @@ async def githubcallback(request):
     }
     req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/CONTAINER_HOSTING_API_KEY', json=data)
 
+    # Store CONTAINER_HOSTING_API_KEY in CI/CD provider (Github) secrets tool
+    github_store_secret("CONTAINER_HOSTING_API_KEY", CONTAINER_HOSTING_API_KEY)
+
     # Write out private_key
     with open("./private_key", "wb") as fp:
         fp.write(private_key)
