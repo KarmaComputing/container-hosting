@@ -305,11 +305,11 @@ async def githubcallback(request):
     try:
         req = requests.post("https://db.anotherwebservice.com/?json=1")
         db_settings = req.json()
-        db_hostname = db_settings["hostname"]
-        db_port = db_settings["port"]
-        db_name = db_settings["db_name"]
-        db_username = db_settings["username"]
-        db_password = db_settings["password"]
+        DB_HOST = db_settings["hostname"]
+        DB_PORT = db_settings["port"]
+        DB_NAME = db_settings["DB_NAME"]
+        DB_USER = db_settings["username"]
+        DB_PASSWORD = db_settings["password"]
 
     except Exception as e:
         print(f"Error getting db settings {e}")
@@ -349,10 +349,16 @@ async def githubcallback(request):
 
     amber_encrypt("DOKKU_HOST", DOKKU_HOST, amber_file_location=amber_file_location)
 
+    # Set common ENV settings across all framworks/apps
+    amber_encrypt("DB_USER", DB_USER, amber_file_location=amber_file_location)
+    amber_encrypt("DB_PASSWORD", DB_PASSWORD, amber_file_location=amber_file_location)
+    amber_encrypt("DB_HOST", DB_HOST, amber_file_location=amber_file_location)
+    amber_encrypt("DB_PORT", DB_PORT, amber_file_location=amber_file_location)
+    amber_encrypt("DB_NAME", DB_NAME, amber_file_location=amber_file_location)
 
     # Note we prepend the word "RAILS" but when used, rails
     # needs the ENV variable name to be DATABASE_URL
-    RAILS_DATABASE_URL = f"mysql2://{db_username}:{db_password}@{db_hostname}:{db_port}/{db_name}?pool=5"
+    RAILS_DATABASE_URL = f"mysql2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?pool=5"
     amber_encrypt("RAILS_DATABASE_URL", RAILS_DATABASE_URL, amber_file_location=amber_file_location)
 
     DJANGO_ALLOWED_HOSTS = app_host
@@ -367,19 +373,19 @@ async def githubcallback(request):
     DJANGO_ENGINE = "django.db.backends.mysql"
     amber_encrypt("DJANGO_ENGINE", DJANGO_ENGINE, amber_file_location=amber_file_location)
 
-    DJANGO_DB_HOST = db_hostname
+    DJANGO_DB_HOST = DB_HOST
     amber_encrypt("DJANGO_DB_HOST", DJANGO_DB_HOST, amber_file_location=amber_file_location)
 
-    DJANGO_DB_NAME = db_name
+    DJANGO_DB_NAME = DB_NAME
     amber_encrypt("DJANGO_DB_NAME", DJANGO_DB_NAME, amber_file_location=amber_file_location)
 
-    DJANGO_DB_USER = db_username
+    DJANGO_DB_USER = DB_USER
     amber_encrypt("DJANGO_DB_USER", DJANGO_DB_USER, amber_file_location=amber_file_location)
 
-    DJANGO_DB_PASSWORD = db_password
+    DJANGO_DB_PASSWORD = DB_PASSWORD
     amber_encrypt("DJANGO_DB_PASSWORD", DJANGO_DB_PASSWORD, amber_file_location=amber_file_location)
 
-    DJANGO_DB_PORT = db_port
+    DJANGO_DB_PORT = DB_PORT
     amber_encrypt("DJANGO_DB_PORT", DJANGO_DB_PORT, amber_file_location=amber_file_location)
 
     if "rails" in state:

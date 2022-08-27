@@ -35,6 +35,14 @@ jobs:
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku apps:create APP_NAME || true'
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder:set APP_NAME build-dir src'
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder-dockerfile:set APP_NAME dockerfile-path Dockerfile'
+
+          # Set common env settings
+          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_USER=$DB_USER"'
+          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_PASSWORD=$DB_PASSWORD"'
+          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_HOST=$DB_HOST"'
+          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_PORT=$DB_PORT"'
+          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_NAME=$DB_NAME"'
+
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME RAILS_DEVELOPMENT_HOSTS=APP_NAME.containers.anotherwebservice.com"'
           # Database connection string (rails)
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DATABASE_URL=$RAILS_DATABASE_URL"'
