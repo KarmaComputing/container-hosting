@@ -100,7 +100,7 @@ async def homepage(request):
             "github_authorize_url": github_authorize_url,
             "github_authorize_url_rails": github_authorize_url_rails,
             "github_authorize_url_django": github_authorize_url_django,
-            "github_authorize_url_flask": github_authorize_url_flask
+            "github_authorize_url_flask": github_authorize_url_flask,
             "request": request,
         },
     )
