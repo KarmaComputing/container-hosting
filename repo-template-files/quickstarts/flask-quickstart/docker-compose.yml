@@ -1,0 +1,11 @@
+services:
+  app:
+    image: container-sakfgls
+    build:
+      context: ./src
+    ports:
+      - "5000:5000"
+    volumes:
+      - type: bind
+        source: ./src
+        target: /usr/src/app
