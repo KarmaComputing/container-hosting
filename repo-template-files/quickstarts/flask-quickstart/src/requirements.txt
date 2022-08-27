@@ -1,6 +1,7 @@
 Flask==2.2.2
+SQLAlchemy==1.4.40
 gunicorn==20.1.0
 
-# Note for mysqlclient on linux, the following deps needs to be installed:
-# sudo apt-get install python3-dev default-libmysqlclient-dev build-essential
-mysqlclient==2.0.3
+PyMySQL==1.0.2
+coloredlogs==15.0.1
+python-dotenv==0.20.0
