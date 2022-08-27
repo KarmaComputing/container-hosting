@@ -309,7 +309,7 @@ async def githubcallback(request):
         db_settings = req.json()
         DB_HOST = db_settings["hostname"]
         DB_PORT = db_settings["port"]
-        DB_NAME = db_settings["DB_NAME"]
+        DB_NAME = db_settings["db_name"]
         DB_USER = db_settings["username"]
         DB_PASSWORD = db_settings["password"]
 
