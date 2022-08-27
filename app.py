@@ -19,6 +19,7 @@ import shutil
 import secrets
 from dotenv import load_dotenv
 import time
+import subprocess
 
 load_dotenv(verbose=True)
 
@@ -138,6 +139,9 @@ async def githubcallback(request):
     app_host = f"container-{random_string}.containers.anotherwebservice.com"
     app_url = f"https://container-{random_string}.containers.anotherwebservice.com/"
     repo_name = f"container-{random_string}"
+    os.makedirs(f"./tmp-cloned-repos/{repo_name}", exist_ok=True)
+    amber_file_location = f"./tmp-cloned-repos/{repo_name}/amber.yaml"
+
     data = {
         "name": repo_name,
         "description": "Created using https://container-hosting.anotherwebservice.com/#start",
@@ -163,11 +167,6 @@ async def githubcallback(request):
     )
     repo_url = req.json()["html_url"]
     print(repo_url)
-
-    # Setup secrets using amber
-    amber_secret_key = subprocess.run("amber init 2> /dev/null| sed 's/export AMBER_SECRET=//g'", shell=True, capture_output=True, cwd=f"./tmp-cloned-repos/{repo_name}")
-    amber_secret_key = amber_secret_key.stdout.strip().decode('utf-8')
-    github_store_secret("AMBER_SECRET", amber_secret_key)
 
 
     # Upload initial repo content
@@ -242,8 +241,6 @@ async def githubcallback(request):
     }
     req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/CONTAINER_HOSTING_API_KEY', json=data)
 
-    # Store CONTAINER_HOSTING_API_KEY in CI/CD provider (Github) secrets tool
-    github_store_secret("CONTAINER_HOSTING_API_KEY", CONTAINER_HOSTING_API_KEY)
 
     # Write out private_key
     with open("./private_key", "wb") as fp:
@@ -266,9 +263,6 @@ async def githubcallback(request):
         headers=headers,
         data=json.dumps(data),
     )
-
-    # Set Repo Secret DOKKU_HOST
-    github_store_secret("DOKKU_HOST", DOKKU_HOST)
 
     # Create README.md
     REPO_CLONE_URL = f"git@github.com:{username}/{repo_name}.git"
@@ -317,29 +311,6 @@ async def githubcallback(request):
         db_username = db_settings["username"]
         db_password = db_settings["password"]
 
-        # Note we prepend the word "RAILS" but when used, rails
-        # needs the ENV variable name to be DATABASE_URL
-        RAILS_DATABASE_URL = f"mysql2://{db_username}:{db_password}@{db_hostname}:{db_port}/{db_name}?pool=5"
-        github_store_secret("RAILS_DATABASE_URL", RAILS_DATABASE_URL)
-
-        DJANGO_ALLOWED_HOSTS = app_host
-        github_store_secret("DJANGO_ALLOWED_HOSTS", app_host)
-        DJANGO_SECRET_KEY = secrets.token_urlsafe(30)
-        github_store_secret("DJANGO_SECRET_KEY", DJANGO_SECRET_KEY)
-        DJANGO_DEBUG = "True"
-        github_store_secret("DJANGO_DEBUG", DJANGO_DEBUG)
-        DJANGO_ENGINE = "django.db.backends.mysql"
-        github_store_secret("DJANGO_ENGINE", DJANGO_ENGINE)
-        DJANGO_DB_HOST = db_hostname
-        github_store_secret("DJANGO_DB_HOST", DJANGO_DB_HOST)
-        DJANGO_DB_NAME = db_name
-        github_store_secret("DJANGO_DB_NAME", DJANGO_DB_NAME)
-        DJANGO_DB_USER = db_username
-        github_store_secret("DJANGO_DB_USER", DJANGO_DB_USER)
-        DJANGO_DB_PASSWORD = db_password
-        github_store_secret("DJANGO_DB_PASSWORD", DJANGO_DB_PASSWORD)
-        DJANGO_DB_PORT = db_port
-        github_store_secret("DJANGO_DB_PORT", DJANGO_DB_PORT)
     except Exception as e:
         print(f"Error getting db settings {e}")
 
@@ -355,6 +326,61 @@ async def githubcallback(request):
         f"https://{access_token}@github.com/{username}/{repo_name}.git",
         f"./tmp-cloned-repos/{repo_name}",
     )
+
+    # Setup secrets using amber
+    amber_secret_key = subprocess.run("amber init 2> /dev/null| sed 's/export AMBER_SECRET=//g'", shell=True, capture_output=True, cwd=f"./tmp-cloned-repos/{repo_name}")
+    AMBER_SECRET = amber_secret_key.stdout.strip().decode('utf-8')
+    # POST AMBER_SECRET to DOKKU_HOST_SSH_ENDPOINT
+    data = {
+        "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
+        "APP_NAME": repo_name,
+        "KEY": f"{repo_name}:AMBER_SECRET",
+        "VALUE": AMBER_SECRET
+    }
+    req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/STORE-KEY-VALUE', json=data)
+
+    # Store AMBER_SECRET in github secrets (this is the (only?) secret which
+    # needs to be stored in the CI/CD provider (Github) secrets tool.
+    github_store_secret("AMBER_SECRET", AMBER_SECRET)
+
+
+    # Store CONTAINER_HOSTING_API_KEY in amber.yaml
+    amber_encrypt("CONTAINER_HOSTING_API_KEY", CONTAINER_HOSTING_API_KEY, amber_file_location=amber_file_location)
+
+    amber_encrypt("DOKKU_HOST", DOKKU_HOST, amber_file_location=amber_file_location)
+
+
+    # Note we prepend the word "RAILS" but when used, rails
+    # needs the ENV variable name to be DATABASE_URL
+    RAILS_DATABASE_URL = f"mysql2://{db_username}:{db_password}@{db_hostname}:{db_port}/{db_name}?pool=5"
+    amber_encrypt("RAILS_DATABASE_URL", RAILS_DATABASE_URL, amber_file_location=amber_file_location)
+
+    DJANGO_ALLOWED_HOSTS = app_host
+    amber_encrypt("DJANGO_ALLOWED_HOSTS", DJANGO_ALLOWED_HOSTS, amber_file_location=amber_file_location)
+
+    DJANGO_SECRET_KEY = secrets.token_urlsafe(30)
+    amber_encrypt("DJANGO_SECRET_KEY", DJANGO_SECRET_KEY, amber_file_location=amber_file_location)
+
+    DJANGO_DEBUG = "True"
+    amber_encrypt("DJANGO_DEBUG", DJANGO_DEBUG, amber_file_location=amber_file_location)
+
+    DJANGO_ENGINE = "django.db.backends.mysql"
+    amber_encrypt("DJANGO_ENGINE", DJANGO_ENGINE, amber_file_location=amber_file_location)
+
+    DJANGO_DB_HOST = db_hostname
+    amber_encrypt("DJANGO_DB_HOST", DJANGO_DB_HOST, amber_file_location=amber_file_location)
+
+    DJANGO_DB_NAME = db_name
+    amber_encrypt("DJANGO_DB_NAME", DJANGO_DB_NAME, amber_file_location=amber_file_location)
+
+    DJANGO_DB_USER = db_username
+    amber_encrypt("DJANGO_DB_USER", DJANGO_DB_USER, amber_file_location=amber_file_location)
+
+    DJANGO_DB_PASSWORD = db_password
+    amber_encrypt("DJANGO_DB_PASSWORD", DJANGO_DB_PASSWORD, amber_file_location=amber_file_location)
+
+    DJANGO_DB_PORT = db_port
+    amber_encrypt("DJANGO_DB_PORT", DJANGO_DB_PORT, amber_file_location=amber_file_location)
 
     if "rails" in state:
         # add framework quickstart files
@@ -387,6 +413,11 @@ async def githubcallback(request):
         index.commit("Added django quickstart")
 
     #time.sleep(3)  # TODO hook/poll
+
+    # Commit amber.yaml secrets file to repo
+    index = repo.index
+    index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/amber.yaml"])
+    index.commit("Added amber.yaml secrets file")
 
     # git push the repo
     origin = repo.remotes[0]
@@ -422,7 +453,6 @@ async def githubcallback(request):
         # the REPO_NAME.
         deploy_yml = deploy_yml.replace("APP_NAME", repo_name)
         deploy_yml = deploy_yml.replace("REPO_NAME", repo_name)
-        deploy_yml = deploy_yml.replace("DJANGO_ALLOWED_HOSTS", DJANGO_ALLOWED_HOSTS)
         deploy_yml_b64 = b64encode(deploy_yml.encode("utf-8")).decode("utf-8")
         data = {
             "message": "create deploy.yml",
@@ -439,6 +469,8 @@ async def githubcallback(request):
         "welcome.html", {"repo_url": repo_url, "request": request}
     )
 
+async def blog(request):
+    return templates.TemplateResponse("heroku-alternatives.html", {"request": request})
 
 async def health(request):
     print(request)
@@ -449,6 +481,7 @@ routes = [
     Route("/", homepage, methods=["GET", "POST"]),
     Route("/health", health, methods=["GET"]),
     Route("/githubcallback", githubcallback, methods=["GET"]),
+    Route("/heroku-alternatives", blog, methods=["GET"]),
 ]
 
 app = Starlette(debug=True, routes=routes)
