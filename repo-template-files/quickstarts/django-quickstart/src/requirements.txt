@@ -1,0 +1,5 @@
+Django==3.2
+psycopg2-binary==2.8.6
+mysqlclient==2.0.3
+elasticsearch>=2.0.0,<3.0.0
+django-haystack==3.0
