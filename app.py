@@ -92,6 +92,7 @@ async def homepage(request):
     github_authorize_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state}&scope=repo%20user:email"  # noqa: E501
     github_authorize_url_rails = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_rails}&scope=repo%20user:email"  # noqa: E501
     github_authorize_url_django = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_django}&scope=repo%20user:email"  # noqa: E501
+    github_authorize_url_flask = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_flask}&scope=repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
         "index.html",
@@ -99,6 +100,7 @@ async def homepage(request):
             "github_authorize_url": github_authorize_url,
             "github_authorize_url_rails": github_authorize_url_rails,
             "github_authorize_url_django": github_authorize_url_django,
+            "github_authorize_url_flask": github_authorize_url_flask
             "request": request,
         },
     )
@@ -417,6 +419,22 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt"])
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/wait-for.sh"])
         index.commit("Added django quickstart")
+
+    if "flask" in state:
+        # add framework quickstart files
+        shutil.copytree(
+            f"{BASE_PATH}/repo-template-files/quickstarts/flask-quickstart/src",
+            f"./tmp-cloned-repos/{repo_name}/src",
+            dirs_exist_ok=True,
+        )
+        # add/commit framework files to repo
+        index = repo.index
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/web"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/entrypoint.sh"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/Dockerfile"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt"])
+        index.commit("Added flask quickstart")
+
 
     #time.sleep(3)  # TODO hook/poll
 
