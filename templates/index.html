@@ -5,63 +5,86 @@
 </head>
 
 <style>
+body {
+    font-family: sans-serif;
+    max-width: 800px;
+}
+
+@media (min-width:799px) {
+    body {
+        margin: 0 25%;
+    }
+}
+
 li {
     padding: 5px;
 }
+
+header {
+    background: black;
+    color: white;
+    padding: 1em;
+}
+
+.largeDot {
+    font-size: 1.25em;
+}
+
+.subheading {
+    font-size: 1.2em;
+    font-weight: initial;
+}
 </style>
 
-<h1>Container Hosting Platform</h1>
+<header>
+<h1>A Simple Container Hosting Platform<span class="largeDot">.</span></h1>
 
-A simple container hosting platform.
+<h2 class="subheading">Container hosting service with a database &amp; CI/CD included</h2>
+
+<small style="text-align: right;display: block;">Perfect for small projects &amp; learning.</small>
+
+</header>
 
 <hr />
-<h2>Container hosting quickstart</h2>
+<h2>Quickstart</h2>
 <ol>
 	<li>Choose your framework</li>
-	<li>Automatic project setup</li>
+    <li>Connect your GitHub account</li>
+	<li>Automatic project setup (database, CI/CD &amp; tagged releases)</li>
 </ol>
 
 
-Work in progress: Automated quickstart of popular web frameworks (with Dockerfile + example code)
+<h2>Choose your framework</h2>
+
+<p>Not sure? Click "<em>Flask App quickstart</em>" to get started.</p>
+
 <ul>
-    <li><a class="debounce" href="{{ github_authorize_url_flask }}">Flask App quickstart(Python)</a></li>
-    <li><a class="debounce" href="{{ github_authorize_url_django }}">Django App quickstart (Python)</a></li>
+    <li><a class="debounce" href="{{ github_authorize_url_flask }}">Flask App quickstart (Python)</a> 🐍</li>
+    <li><a class="debounce" href="{{ github_authorize_url_django }}">Django App quickstart (Python)</a> 📰</li>
     <li>Laravel App quickstart (PHP)</li>
     <li>Express App quickstart (Node.js)</li>
     <li>Rocket App quickstart (Rust)</li>
-    <li><a class="debounce" href="{{ github_authorize_url_rails }}">Rails quickstart (Ruby)</a></li>
+    <li><a class="debounce" href="{{ github_authorize_url_rails }}">Rails quickstart (Ruby)</a> 💎</li>
     <li><a class="debounce" href="{{ github_authorize_url }}">No Framework</a> (bring your own)</li>
 </ul>
+<small>Additional frameworks being added- ask!</small>
 
-
-<h3>Help I got an error</h3>
-
-<details>
-	<summary>When doing `docker-compose up` I see: IndexError: list index out of range</summary>
-
-````
-  File "compose/service.py", line 1950, in build
-  IndexError: list index out of range
-```
+<h3>What do I get?</h3>
+<p>You will get:</p>
 
 <ul>
-	<li>Did you recently try to build docker containers on an M1 mac? Do you usually use `--load`?</li>
-	<li>Try `COMPOSE_DOCKER_CLI_BUILD=0 docker-compose up`</li>
-	<li>See <a href="https://github.com/docker/compose/issues/8494">Failed to execute script docker-compose. IndexError: list index out of range</a></li>
+    <li>An automated quickstart with the framework you choose, with Dockerfile &amp; example code</li>
+    <li>Container hosting &amp; running with a web address</li>
+    <li>A database, already connected to your app so you don't need to worry about that.</li>
+    <li>A web address with a SSL/TLS certificate</li>
+    <li>Automatic re-deploy when you do a `git push` to your repo using GitHub actions.</li>
 </ul>
-</details>
 
-<details>
-	<summary>ERROR: Encountered errors while bringing up the project</summary>
-	<p>If you see the bind port is already allocated error, this usually means you have another application running on the same port (or forgot to stop docker-compose last time.</p> <p>Stop the other running application and start again</p>
-	<ul>
-	<li>Bind for 0.0.0.0:5000 failed: port is already allocated
-		ERROR: Encountered errors while bringing up the project.</li>
-	</ul>
-</details>
-
-<h4>Is this real?</h4>
-<p>Yes.</p>
+<hr />
+<p>This service integrates with GitHub</p>
+<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="Github logo" width="50px" />
+<br />
+<small>"GitHub" is owned by GitHub, Inc</small>
 
 <script>
 debounceLinks = document.getElementsByClassName("debounce");
