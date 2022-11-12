@@ -4,8 +4,8 @@ services:
     build:
       context: ./src
     ports:
-      - "5000:80"
+      - "5000:5000"
     volumes:
       - type: bind
-        source: ./src
+        source: ./src/web
         target: /usr/src/app
