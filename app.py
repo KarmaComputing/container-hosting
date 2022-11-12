@@ -34,14 +34,18 @@ DOKKU_HOST_SSH_ENDPOINT = os.getenv("DOKKU_HOST_SSH_ENDPOINT")
 CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY = os.getenv(
     "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY"
 )
-DOKKU_WRAPPER_FULL_PATH =os.getenv("DOKKU_WRAPPER_FULL_PATH")
+DOKKU_WRAPPER_FULL_PATH = os.getenv("DOKKU_WRAPPER_FULL_PATH")
 
 # See https://github.com/dokku/dokku-letsencrypt/pull/211
 
-def amber_encrypt(key: str, value: str, amber_file_location = './amber.yaml'):
+
+def amber_encrypt(key: str, value: str, amber_file_location="./amber.yaml"):
     if os.getenv("AMBER_YAML") is not None:
         amber_file_location = os.getenv("AMBER_YAML")
-    subprocess.run(["amber", "encrypt", "--amber-yaml", amber_file_location, key, value])
+    subprocess.run(
+        ["amber", "encrypt", "--amber-yaml", amber_file_location, key, value]
+    )
+
 
 def generate_ssh_keys():
     """Generate public/private ssh keys
@@ -171,7 +175,6 @@ async def githubcallback(request):
     repo_url = req.json()["html_url"]
     print(repo_url)
 
-
     # Upload initial repo content
     with open("./repo-template-files/.autorc") as fp:
         autorc = fp.read()
@@ -240,10 +243,11 @@ async def githubcallback(request):
     data = {
         "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
         "APP_NAME": repo_name,
-        "CONTAINER_HOSTING_API_KEY": CONTAINER_HOSTING_API_KEY
+        "CONTAINER_HOSTING_API_KEY": CONTAINER_HOSTING_API_KEY,
     }
-    req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/CONTAINER_HOSTING_API_KEY', json=data)
-
+    req = requests.post(
+        DOKKU_HOST_SSH_ENDPOINT + "/CONTAINER_HOSTING_API_KEY", json=data
+    )
 
     # Write out private_key
     with open("./private_key", "wb") as fp:
@@ -284,7 +288,6 @@ async def githubcallback(request):
             headers=headers,
             data=json.dumps(data),
         )
-
 
     # Create docker-compose.yml github workflow
     with open("./repo-template-files/docker-compose.yml") as fp:
@@ -331,24 +334,32 @@ async def githubcallback(request):
     )
 
     # Setup secrets using amber
-    amber_secret_key = subprocess.run("amber init 2> /dev/null| sed 's/export AMBER_SECRET=//g'", shell=True, capture_output=True, cwd=f"./tmp-cloned-repos/{repo_name}")
-    AMBER_SECRET = amber_secret_key.stdout.strip().decode('utf-8')
+    amber_secret_key = subprocess.run(
+        "amber init 2> /dev/null| sed 's/export AMBER_SECRET=//g'",
+        shell=True,
+        capture_output=True,
+        cwd=f"./tmp-cloned-repos/{repo_name}",
+    )
+    AMBER_SECRET = amber_secret_key.stdout.strip().decode("utf-8")
     # POST AMBER_SECRET to DOKKU_HOST_SSH_ENDPOINT
     data = {
         "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
         "APP_NAME": repo_name,
         "KEY": f"{repo_name}:AMBER_SECRET",
-        "VALUE": AMBER_SECRET
+        "VALUE": AMBER_SECRET,
     }
-    req = requests.post(DOKKU_HOST_SSH_ENDPOINT + '/STORE-KEY-VALUE', json=data)
+    req = requests.post(DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data)
 
     # Store AMBER_SECRET in github secrets (this is the (only?) secret which
     # needs to be stored in the CI/CD provider (Github) secrets tool.
     github_store_secret("AMBER_SECRET", AMBER_SECRET)
 
-
     # Store CONTAINER_HOSTING_API_KEY in amber.yaml
-    amber_encrypt("CONTAINER_HOSTING_API_KEY", CONTAINER_HOSTING_API_KEY, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "CONTAINER_HOSTING_API_KEY",
+        CONTAINER_HOSTING_API_KEY,
+        amber_file_location=amber_file_location,
+    )
 
     amber_encrypt("DOKKU_HOST", DOKKU_HOST, amber_file_location=amber_file_location)
 
@@ -361,35 +372,61 @@ async def githubcallback(request):
 
     # Note we prepend the word "RAILS" but when used, rails
     # needs the ENV variable name to be DATABASE_URL
-    RAILS_DATABASE_URL = f"mysql2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?pool=5"
-    amber_encrypt("RAILS_DATABASE_URL", RAILS_DATABASE_URL, amber_file_location=amber_file_location)
+    RAILS_DATABASE_URL = (
+        f"mysql2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?pool=5"
+    )
+    amber_encrypt(
+        "RAILS_DATABASE_URL",
+        RAILS_DATABASE_URL,
+        amber_file_location=amber_file_location,
+    )
 
     DJANGO_ALLOWED_HOSTS = app_host
-    amber_encrypt("DJANGO_ALLOWED_HOSTS", DJANGO_ALLOWED_HOSTS, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_ALLOWED_HOSTS",
+        DJANGO_ALLOWED_HOSTS,
+        amber_file_location=amber_file_location,
+    )
 
     DJANGO_SECRET_KEY = secrets.token_urlsafe(30)
-    amber_encrypt("DJANGO_SECRET_KEY", DJANGO_SECRET_KEY, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_SECRET_KEY", DJANGO_SECRET_KEY, amber_file_location=amber_file_location
+    )
 
     DJANGO_DEBUG = "True"
     amber_encrypt("DJANGO_DEBUG", DJANGO_DEBUG, amber_file_location=amber_file_location)
 
     DJANGO_ENGINE = "django.db.backends.mysql"
-    amber_encrypt("DJANGO_ENGINE", DJANGO_ENGINE, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_ENGINE", DJANGO_ENGINE, amber_file_location=amber_file_location
+    )
 
     DJANGO_DB_HOST = DB_HOST
-    amber_encrypt("DJANGO_DB_HOST", DJANGO_DB_HOST, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_DB_HOST", DJANGO_DB_HOST, amber_file_location=amber_file_location
+    )
 
     DJANGO_DB_NAME = DB_NAME
-    amber_encrypt("DJANGO_DB_NAME", DJANGO_DB_NAME, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_DB_NAME", DJANGO_DB_NAME, amber_file_location=amber_file_location
+    )
 
     DJANGO_DB_USER = DB_USER
-    amber_encrypt("DJANGO_DB_USER", DJANGO_DB_USER, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_DB_USER", DJANGO_DB_USER, amber_file_location=amber_file_location
+    )
 
     DJANGO_DB_PASSWORD = DB_PASSWORD
-    amber_encrypt("DJANGO_DB_PASSWORD", DJANGO_DB_PASSWORD, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_DB_PASSWORD",
+        DJANGO_DB_PASSWORD,
+        amber_file_location=amber_file_location,
+    )
 
     DJANGO_DB_PORT = DB_PORT
-    amber_encrypt("DJANGO_DB_PORT", DJANGO_DB_PORT, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "DJANGO_DB_PORT", DJANGO_DB_PORT, amber_file_location=amber_file_location
+    )
 
     if "rails" in state:
         # add framework quickstart files
@@ -436,8 +473,7 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt"])
         index.commit("Added flask quickstart")
 
-
-    #time.sleep(3)  # TODO hook/poll
+    # time.sleep(3)  # TODO hook/poll
 
     # Commit amber.yaml secrets file to repo
     index = repo.index
@@ -494,8 +530,10 @@ async def githubcallback(request):
         "welcome.html", {"repo_url": repo_url, "request": request}
     )
 
+
 async def blog(request):
     return templates.TemplateResponse("heroku-alternatives.html", {"request": request})
+
 
 async def health(request):
     print(request)
