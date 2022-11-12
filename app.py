@@ -1,8 +1,11 @@
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
-from starlette.routing import Route, Mount
+from starlette.routing import Route
 from starlette.templating import Jinja2Templates
-from starlette.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException
+from starlette.responses import HTMLResponse
+from starlette.requests import Request
+
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -18,7 +21,6 @@ import shutil
 
 import secrets
 from dotenv import load_dotenv
-import time
 import subprocess
 
 load_dotenv(verbose=True)
@@ -78,7 +80,9 @@ def encrypt_github_secret(public_key: str, secret_value: str) -> str:
     """Encrypt a Unicode string using the GitHub repo public key.
     Used for creating GitHub repo secrets
     """
-    public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+    public_key = public.PublicKey(
+        public_key.encode("utf-8"), encoding.Base64Encoder()
+    )  # noqa: E501
     sealed_box = public.SealedBox(public_key)
     encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
     return b64encode(encrypted).decode("utf-8")
@@ -97,7 +101,7 @@ async def homepage(request):
     github_authorize_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state}&scope=repo%20user:email"  # noqa: E501
     github_authorize_url_rails = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_rails}&scope=repo%20user:email"  # noqa: E501
     github_authorize_url_django = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_django}&scope=repo%20user:email"  # noqa: E501
-    github_authorize_url_flask = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_flask}&scope=repo%20user:email"  # noqa: E501
+    github_authorize_url_flask = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_flask}&scope=workflow%20repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
         "index.html",
@@ -127,13 +131,16 @@ async def githubcallback(request):
     }
     headers = {"Accept": "application/json"}
     req = requests.post(
-        "https://github.com/login/oauth/access_token", data=data, headers=headers
+        "https://github.com/login/oauth/access_token",
+        data=data,
+        headers=headers,  # noqa: E501
     )
 
     # Get access token from github
     resp = req.json()
     access_token = resp.get("access_token")
     scope = resp.get("scope")
+    print(scope)
     print(access_token)
 
     # Use access token
@@ -144,14 +151,14 @@ async def githubcallback(request):
     # Create unique repo name
     random_string = secrets.token_urlsafe(5).lower().replace("_", "")
     app_host = f"container-{random_string}.containers.anotherwebservice.com"
-    app_url = f"https://container-{random_string}.containers.anotherwebservice.com/"
+    app_url = f"https://container-{random_string}.containers.anotherwebservice.com/"  # noqa: E501
     repo_name = f"container-{random_string}"
     os.makedirs(f"./tmp-cloned-repos/{repo_name}", exist_ok=True)
     amber_file_location = f"./tmp-cloned-repos/{repo_name}/amber.yaml"
 
     data = {
         "name": repo_name,
-        "description": "Created using https://container-hosting.anotherwebservice.com/#start",
+        "description": "Created using https://container-hosting.anotherwebservice.com/#start",  # noqa: E501
         "homepage": app_url,
         "private": False,
         "has_issues": True,
@@ -162,6 +169,7 @@ async def githubcallback(request):
     # Get their GitHub username
     username = req.get("login")
     avatar_url = req.get("avatar_url")
+    print(f"avatar_url: {avatar_url}")
     # Get email address so can do git commits with correct author information
     req = requests.get("https://api.github.com/user/emails", headers=headers)
     email = req.json()[0].get("email", None)
@@ -174,40 +182,6 @@ async def githubcallback(request):
     )
     repo_url = req.json()["html_url"]
     print(repo_url)
-
-    # Upload initial repo content
-    with open("./repo-template-files/.autorc") as fp:
-        autorc = fp.read()
-        autorc = autorc.replace("GITHUB_OWNER", username)
-        autorc = autorc.replace("GITHUB_REPO_NAME", repo_name)
-        autorc_b64 = b64encode(autorc.encode("utf-8")).decode("utf-8")
-        data = {
-            "message": "create .autorc",
-            "committer": {"name": username, "email": email},
-            "content": autorc_b64,
-        }
-        req = requests.put(
-            f"https://api.github.com/repos/{username}/{repo_name}/contents/.autorc",
-            headers=headers,
-            data=json.dumps(data),
-        )
-
-    # Upload initial Dockerfile
-    with open("./repo-template-files/src/Dockerfile") as fp:
-        dockerfile = fp.read()
-        dockerfile = dockerfile.replace("GITHUB_OWNER", username)
-        dockerfile = dockerfile.replace("GITHUB_REPO_NAME", repo_name)
-        dockerfile_b64 = b64encode(dockerfile.encode("utf-8")).decode("utf-8")
-        data = {
-            "message": "create .dockerfile",
-            "committer": {"name": username, "email": email},
-            "content": dockerfile_b64,
-        }
-        req = requests.put(
-            f"https://api.github.com/repos/{username}/{repo_name}/contents/src/Dockerfile",
-            headers=headers,
-            data=json.dumps(data),
-        )
 
     # Create repo secrets
     req = requests.get(
@@ -332,6 +306,8 @@ async def githubcallback(request):
         f"https://{access_token}@github.com/{username}/{repo_name}.git",
         f"./tmp-cloned-repos/{repo_name}",
     )
+    repo.config_writer().set_value("user", "name", username).release()
+    repo.config_writer().set_value("user", "email", email).release()
 
     # Setup secrets using amber
     amber_secret_key = subprocess.run(
@@ -348,7 +324,13 @@ async def githubcallback(request):
         "KEY": f"{repo_name}:AMBER_SECRET",
         "VALUE": AMBER_SECRET,
     }
-    req = requests.post(DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data)
+    try:
+        print("Posting to DOKKU_HOST_SSH_ENDPOINT")
+        req = requests.post(
+            DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data, timeout=0.001
+        )
+    except requests.exceptions.ConnectTimeout as e:
+        print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
 
     # Store AMBER_SECRET in github secrets (this is the (only?) secret which
     # needs to be stored in the CI/CD provider (Github) secrets tool.
@@ -473,58 +455,66 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/src/requirements.txt"])
         index.commit("Added flask quickstart")
 
-    # time.sleep(3)  # TODO hook/poll
+    # git push the repo
+    origin = repo.remotes[0]
+    repo.heads.main.set_tracking_branch(origin.refs.main)
+    fetch = origin.fetch()[0]
 
     # Commit amber.yaml secrets file to repo
     index = repo.index
     index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/amber.yaml"])
     index.commit("Added amber.yaml secrets file")
 
-    # git push the repo
-    origin = repo.remotes[0]
-    repo.heads.main.set_tracking_branch(origin.refs.main)
-    fetch = origin.fetch()[0]
-    pull = origin.pull(rebase=True)[0]
-    print(pull.commit.summary)
-    push = origin.push()[0]
-    print(push.summary)
+    # Setup .autorc
+    fp = open("./repo-template-files/.autorc")
+    autorc = fp.read()
+    autorc = autorc.replace("GITHUB_OWNER", username)
+    autorc = autorc.replace("GITHUB_REPO_NAME", repo_name)
+    fp.close()
+    with open(f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.autorc", "w") as fp:
+        fp.write(autorc)
+
+    index = repo.index
+    index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.autorc"])
+    index.commit("Added .autorc file")
 
     # Create release.yml github workflow
-    with open("./repo-template-files/.github/workflows/release.yml") as fp:
-        release_yml = fp.read()
-        release_yml = release_yml.replace("GITHUB_OWNER", username)
-        release_yml = release_yml.replace("GITHUB_REPO_NAME", repo_name)
-        release_yml_b64 = b64encode(release_yml.encode("utf-8")).decode("utf-8")
-        data = {
-            "message": "create .release_yml",
-            "committer": {"name": username, "email": email},
-            "content": release_yml_b64,
-        }
-        req = requests.put(
-            f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/release.yml",
-            headers=headers,
-            data=json.dumps(data),
-        )
+    fp = open("./repo-template-files/.github/workflows/release.yml")
+    release_yml = fp.read()
+    fp.close()
+    os.makedirs(
+        f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.github/workflows/", exist_ok=True
+    )
+    with open(
+        f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.github/workflows/release.yml", "w"
+    ) as fp:
+        fp.write(release_yml)
+
+    index = repo.index
+    index.add(
+        [f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.github/workflows/release.yml"]
+    )
+    index.commit("Added release.yml file")
 
     # Create deploy.yml github workflow (last action- triggers first deploy pipeline)
-    with open("./repo-template-files/.github/workflows/deploy.yml") as fp:
-        deploy_yml = fp.read()
+    fp = open("./repo-template-files/.github/workflows/deploy.yml")
+    deploy_yml = fp.read()
+    fp.close()
+    with open(
+        f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.github/workflows/deploy.yml", "w"
+    ) as fp:
         deploy_yml = deploy_yml.replace("GITHUB_OWNER", username)
         # APP_NAME is for dokku, and is currently the same as
         # the REPO_NAME.
         deploy_yml = deploy_yml.replace("APP_NAME", repo_name)
         deploy_yml = deploy_yml.replace("REPO_NAME", repo_name)
-        deploy_yml_b64 = b64encode(deploy_yml.encode("utf-8")).decode("utf-8")
-        data = {
-            "message": "create deploy.yml",
-            "committer": {"name": username, "email": email},
-            "content": deploy_yml_b64,
-        }
-        req = requests.put(
-            f"https://api.github.com/repos/{username}/{repo_name}/contents/.github/workflows/deploy.yml",
-            headers=headers,
-            data=json.dumps(data),
-        )
+        fp.write(deploy_yml)
+
+    index.add([f"{BASE_PATH}tmp-cloned-repos/{repo_name}/.github/workflows/deploy.yml"])
+    index.commit("Added deploy.yml file")
+
+    push = origin.push()[0]
+    print(push.summary)
 
     return templates.TemplateResponse(
         "welcome.html", {"repo_url": repo_url, "request": request}
@@ -540,6 +530,14 @@ async def health(request):
     return PlainTextResponse("OK")
 
 
+async def not_found(request: Request, exc: HTTPException):
+    return HTMLResponse(content="404", status_code=exc.status_code)
+
+
+async def server_error(request: Request, exc: HTTPException):
+    return HTMLResponse(content="500", status_code=500)
+
+
 routes = [
     Route("/", homepage, methods=["GET", "POST"]),
     Route("/health", health, methods=["GET"]),
@@ -547,4 +545,6 @@ routes = [
     Route("/heroku-alternatives", blog, methods=["GET"]),
 ]
 
-app = Starlette(debug=True, routes=routes)
+exception_handlers = {404: not_found, 500: server_error}
+
+app = Starlette(debug=False, routes=routes, exception_handlers=exception_handlers)
