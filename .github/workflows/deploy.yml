@@ -27,5 +27,6 @@ jobs:
           eval `ssh-agent -s`
           ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY}}"
           ssh dokku@${{ secrets.DOKKU_HOST }} -C "dokku apps:create container-hosting" || true
+          ssh dokku@${{ secrets.DOKKU_HOST }} -C dokku builder:set container-hosting build-dir src
           ssh dokku@${{ secrets.DOKKU_HOST }} -C dokku builder-dockerfile:set container-hosting dockerfile-path Dockerfile
           ssh dokku@${{ secrets.DOKKU_HOST }} -C dokku git:sync --build container-hosting https://github.com/KarmaComputing/container-hosting.git main
