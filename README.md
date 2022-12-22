@@ -8,13 +8,12 @@
 
 ## Run locally
 
-1. [Install rust](https://rustup.rs/)
-2. Run web app:
-  ```
-  cd container-hosting # subdirectory same name
-  cargo run
-  ```
-3. Visit http://127.0.0.1:8000/
+```
+python3 -m venv venv
+. venv/bin/activate
+pip install -r -U requirements.txt
+./run.sh
+```
 
 
 ## To start creating first create a token (PAT)</br>
