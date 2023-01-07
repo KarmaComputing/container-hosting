@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>What is the difference between Docker host and Docker container?</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="A Docker host is a server which can run Docker containers. In other words, you need a Docker (aka) container host in order to run containers, which may have been built using Docker">
+  </head>
+  <body>
+  <h1>What is the difference between Docker host and Docker container</h1>
+
+  <p>You need* a Docker host in order to run Docker containers- except remember 'Docker' is just a marketing term for *containers* which run directly as part of the Linux kernel.</p>
+
+  <p><em>Docker</em> provides various tools and pieces of software (such as Docker Desktop) to make it easier to run Linux containers</p>
+
+  <ul>
+    <li>Docker containers are packages of software</li>
+    <li>A Docker 'host' defers to a <em>server</em> which is able to run containers</li>
+    <li>Don't get too hung up of the word "Docker", there are many other ways to run containers, like Podman etc (<a href="https://wizardzines.com/zines/containers/">Julia Evans has produces a beautiful cartoon explaining how containers work</a>. See especially her <a href="https://wizardzines.com/zines/containers/samples/cgroups.jpg">Cgroups cartoon</a></li>
+
+  </ul>
+
+  <h2>Docker host vs Docker container summary</h2>
+
+  <p>A docker host is a server which can run docker containers- but the word "Docker" is redundant- that's just good branding on Dockers part, all containers are actually Linux cgroups/namespaced.</p>
+  <p>That is, untill you look into the history and find <a href="https://en.wikipedia.org/wiki/Solaris_Containers">Solaris Containers</a> from ~2004 and <a href="https://docs.freebsd.org/en/books/handbook/jails/">FreeBSD Jails</a> in <a href="https://en.wikipedia.org/wiki/FreeBSD_jail">1999</a>.
+
+  <p>See also <a href="/what-is-container-hosting">"What is container hosting?"</a></p>
+
+  </body>
+
+</html>
