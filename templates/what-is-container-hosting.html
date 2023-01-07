@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <h1>What is container hosting?</h1>
+
+  <p>Container hosting is typically when you don't want to setup a complete server by yourself. Instead, you rent/borrow a server, and your 'container' runs on that server.</p>
+
+  <h2>But how can I server run containers?</h2>
+  <p>In order for a server to run containers, the server needs a container runtime installed such as containerd, CRI-O, Docker Engine etc.</p>
+
+  <p>It's common (but wrong) to think that "container" == Docker, but that's not the case- it's just very good marketing on Docker's part</p>
+
+  <p>Under the hood, all linux containers use a combination of `cgroups` and
+  `namespaces` to create the illusion of isolation between your containers.</p>
+
+  <h2>What's the tldr of container hosting?</h2>
+  <p>Upload your `Dockerfile` (or `Containerfile`) to a <a href="/">container hosting service</a> and that service will build your container and run it for you so that you don't have to. Ta-da!</p>
+</html>

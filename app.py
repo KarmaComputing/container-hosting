@@ -538,8 +538,15 @@ async def server_error(request: Request, exc: HTTPException):
     return HTMLResponse(content="500", status_code=500)
 
 
+async def catch_all(request: Request):
+    return templates.TemplateResponse(
+        f"{request.path_params['path']}.html", {"request": request}
+    )
+
+
 routes = [
     Route("/", homepage, methods=["GET", "POST"]),
+    Route("/{path:path}", catch_all),
     Route("/health", health, methods=["GET"]),
     Route("/githubcallback", githubcallback, methods=["GET"]),
     Route("/heroku-alternatives", blog, methods=["GET"]),
