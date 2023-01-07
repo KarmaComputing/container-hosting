@@ -544,8 +544,13 @@ async def catch_all(request: Request):
     )
 
 
+async def robots(request: Request):
+    return PlainTextResponse("user-agent: *")
+
+
 routes = [
     Route("/", homepage, methods=["GET", "POST"]),
+    Route("/robots.txt", robots),
     Route("/{path:path}", catch_all),
     Route("/health", health, methods=["GET"]),
     Route("/githubcallback", githubcallback, methods=["GET"]),
