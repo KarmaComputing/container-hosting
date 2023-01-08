@@ -551,10 +551,10 @@ async def robots(request: Request):
 routes = [
     Route("/", homepage, methods=["GET", "POST"]),
     Route("/robots.txt", robots),
-    Route("/{path:path}", catch_all),
     Route("/health", health, methods=["GET"]),
     Route("/githubcallback", githubcallback, methods=["GET"]),
     Route("/heroku-alternatives", blog, methods=["GET"]),
+    Route("/{path:path}", catch_all),
 ]
 
 exception_handlers = {404: not_found, 500: server_error}
