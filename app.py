@@ -98,9 +98,9 @@ async def homepage(request):
     state_rails = f"{secrets.token_urlsafe(30)}---rails"
     state_django = f"{secrets.token_urlsafe(30)}---django"
     state_flask = f"{secrets.token_urlsafe(30)}---flask"
-    github_authorize_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state}&scope=repo%20user:email"  # noqa: E501
-    github_authorize_url_rails = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_rails}&scope=repo%20user:email"  # noqa: E501
-    github_authorize_url_django = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_django}&scope=repo%20user:email"  # noqa: E501
+    github_authorize_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state}&scope=workflow%20repo%20user:email"  # noqa: E501
+    github_authorize_url_rails = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_rails}&scope=workflow%20repo%20user:email"  # noqa: E501
+    github_authorize_url_django = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_django}&scope=workflow%20repo%20user:email"  # noqa: E501
     github_authorize_url_flask = f"https://github.com/login/oauth/authorize?client_id={client_id}&state={state_flask}&scope=workflow%20repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
