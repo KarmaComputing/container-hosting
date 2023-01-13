@@ -48,7 +48,7 @@ jobs:
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DATABASE_URL=$RAILS_DATABASE_URL"'
           # Database connection string (django)
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME SECRET_KEY=$DJANGO_SECRET_KEY"'
-          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME ALLOWED_HOSTS=APP_NAME.containers.anotherwebservice.com"'
+          amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME ALLOWED_HOSTS=$ALLOWED_HOSTS"'
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DEBUG=$DJANGO_DEBUG"'
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_ENGINE=$DJANGO_ENGINE"'
           amber exec -- sh -c 'ssh dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "dokku config:set --no-restart APP_NAME DB_NAME=$DJANGO_DB_NAME"'
