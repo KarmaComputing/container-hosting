@@ -1,3 +1,15 @@
+# v0.0.2 (Fri Jan 13 2023)
+
+#### ⚠️ Pushed to `main`
+
+- #14 correct required scope workflow for actions automation ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.1 (Fri Jan 13 2023)
 
 :tada: This release contains work from new contributors! :tada:
