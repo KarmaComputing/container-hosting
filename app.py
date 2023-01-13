@@ -352,6 +352,7 @@ async def githubcallback(request):
     amber_encrypt("DB_HOST", DB_HOST, amber_file_location=amber_file_location)
     amber_encrypt("DB_PORT", DB_PORT, amber_file_location=amber_file_location)
     amber_encrypt("DB_NAME", DB_NAME, amber_file_location=amber_file_location)
+    amber_encrypt("ALLOWED_HOSTS", app_url, amber_file_location=amber_file_location)
 
     # Note we prepend the word "RAILS" but when used, rails
     # needs the ENV variable name to be DATABASE_URL
