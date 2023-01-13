@@ -1,3 +1,15 @@
+# v0.0.3 (Fri Jan 13 2023)
+
+#### ⚠️ Pushed to `main`
+
+- #15 local development work out the box ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.2 (Fri Jan 13 2023)
 
 #### ⚠️ Pushed to `main`
