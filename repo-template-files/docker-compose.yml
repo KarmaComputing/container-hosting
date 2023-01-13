@@ -1,5 +1,7 @@
 services:
   app:
+    stdin_open: true
+    tty: true
     image: APP_NAME
     build:
       context: ./src
@@ -9,3 +11,30 @@ services:
       - type: bind
         source: ./src/web
         target: /usr/src/app
+    env_file:
+      - ./src/web/.env
+
+  db:
+    # This database service is used only for local development
+    # Note: It may be preferable to use an online database service
+    # https://db.anotherwebservice.com/
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: app_database
+
+  phpmyadmin:
+    # To view the database during local development
+    # Visit http://127.0.0.1:8080/
+    # Server is: db
+    # Username is same as MYSQL_USER
+    # Password is same as MYSQL_PASSWORD
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      PMA_ARBITRARY: "1"

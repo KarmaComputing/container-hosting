@@ -37,10 +37,14 @@ jobs:
           DOKKU_HOST: ${{ secrets.DOKKU_HOST }}
         run: |
           set -x
+          echo Installing amber secrets manager
+          curl -L https://github.com/fpco/amber/releases/download/v0.1.3/amber-x86_64-unknown-linux-musl > amber
+          chmod +x ./amber
+          mv ./amber /usr/local/bin/amber
           mkdir -p ~/.ssh
-          eval `ssh-agent -s`
-          ssh-add - <<< "$SSH_PRIVATE_KEY"
-          ssh-keyscan $DOKKU_HOST >> ~/.ssh/known_hosts
+          amber exec -- sh -c 'ssh-keyscan $DOKKU_HOST >> ~/.ssh/known_hosts'
+          eval `ssh-agent -s` 
+          ssh-add - <<< "${{ secrets.DOKKU_SSH_PRIVATE_KEY}}"
 
       - name: Set subdomain (ensure is lowercase for dokku)
         id: set_subdomain
@@ -51,14 +55,10 @@ jobs:
 
       - name: Create dokku app for pr branch if dosent already exist using dokku apps:create
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          DOKKU_HOST: ${{ secrets.DOKKU_HOST }}
-          DOKKU_DOMAIN: ${{ secrets.DOKKU_DOMAIN }}
+          SSH_PRIVATE_KEY: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
         run: |
           set -x
           echo The PR was raised by: ${{ github.event.pull_request.user.login }}
-          eval `ssh-agent -s`
-          ssh-add - <<< "$SSH_PRIVATE_KEY"
           ssh dokku@$DOKKU_HOST -C "dokku apps:unlock --force ${{ env.SUBDOMAIN }}" | true
           echo deleting dokku app ${{ github.head_ref }}
           ssh dokku@$DOKKU_HOST -C "dokku -- --force apps:destroy ${{ env.SUBDOMAIN }}" | true

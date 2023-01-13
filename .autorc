@@ -1,11 +1,12 @@
 {
   "plugins": [
     "git-tag",
-    "all-contributors",
+    "conventional-commits",
     "first-time-contributor",
     "released"
   ],
-  "owner": "GITHUB_OWNER",
-  "repo": "REPO_NAME",
-  "name": "GITHUB_OWNER",
+  "owner": "karmacomputing",
+  "repo": "container-hosting",
+  "name": "karmacomputing-bot",
+  "email": "oss@karmacomputing.co.uk"
 }
