@@ -1,5 +1,3 @@
+python-dotenv
 Django
-psycopg2-binary
 mysqlclient
-elasticsearch
-django-haystack

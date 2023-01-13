@@ -15,7 +15,7 @@ Your app will be automatically re-deployed with the latest code at: APP_URL
 
 > You app is deployed already and is working software. Gone are the days of spending weeks coding and then *another* week going to production. No. Go to production *early* and respond to change.
 
-# How to code your app locally 💻 (on your laptop)
+# Getting Started 💻 (locally on your laptop)
 
 > Step 0: You need to download your repo to your computer:
 
@@ -42,11 +42,25 @@ docker-compose build
 docker-compose up --build
 ```
 
-# Which framework did you choose?
+# Start coding! Which framework did you choose?
 
 Need some help to get started?
 
-- [**Ruby** quickstart guide](https://github.com/KarmaComputing/rails-quickstart)
+- [**Flask** quickstart guide](https://flask.palletsprojects.com/en/2.2.x/quickstart/) ⚗️ 🐍
+- [**Django** quide](https://docs.djangoproject.com/en/4.1/topics/http/views/) 📰
+- [**Ruby** quickstart guide](https://github.com/KarmaComputing/rails-quickstart) 💎
+
+# Debugging
+
+How do I turn on the debugger?
+
+Enable a breakpoint by adding `breakpoint()` to your code, start your application and run to that point then in a terminal type:
+
+```
+docker attach APP_NAME
+```
+Ta-da! You'll be inside the [Python debugger](https://docs.python.org/3/library/pdb.html#module-pdb) ( ⬅️ Read this!)
+
 
 
 ## Questions

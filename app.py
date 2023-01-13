@@ -250,6 +250,7 @@ async def githubcallback(request):
     with open("./repo-template-files/README.md") as fp:
         readme_md = fp.read()
         readme_md = readme_md.replace("APP_URL", app_url)
+        readme_md = readme_md.replace("APP_NAME", repo_name)
         readme_md = readme_md.replace("REPO_CLONE_URL", REPO_CLONE_URL)
         readme_md_b64 = b64encode(readme_md.encode("utf-8")).decode("utf-8")
         data = {
