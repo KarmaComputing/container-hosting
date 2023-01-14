@@ -11,8 +11,6 @@ services:
       - type: bind
         source: ./src/web
         target: /usr/src/app
-    env_file:
-      - ./src/web/web/.env
     environment:
       ALLOWED_HOSTS: "127.0.0.1,localhost"
       DATABASE_URL: mysql2=//app_user=password@db=3306/app_database?pool=5&useUnicode=true&characterEncoding=UTF-8
