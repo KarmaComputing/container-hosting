@@ -328,7 +328,7 @@ async def githubcallback(request):
     try:
         print("Posting to DOKKU_HOST_SSH_ENDPOINT")
         req = requests.post(
-            DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data, timeout=0.001
+            DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data, timeout=10
         )
     except requests.exceptions.ConnectTimeout as e:
         print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
@@ -352,7 +352,11 @@ async def githubcallback(request):
     amber_encrypt("DB_HOST", DB_HOST, amber_file_location=amber_file_location)
     amber_encrypt("DB_PORT", DB_PORT, amber_file_location=amber_file_location)
     amber_encrypt("DB_NAME", DB_NAME, amber_file_location=amber_file_location)
-    amber_encrypt("ALLOWED_HOSTS", f"{repo_name}.containers.anotherwebservice.com", amber_file_location=amber_file_location)
+    amber_encrypt(
+        "ALLOWED_HOSTS",
+        f"{repo_name}.containers.anotherwebservice.com",
+        amber_file_location=amber_file_location,
+    )
 
     # Note we prepend the word "RAILS" but when used, rails
     # needs the ENV variable name to be DATABASE_URL
