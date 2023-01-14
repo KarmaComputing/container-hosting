@@ -1,3 +1,16 @@
+# v0.0.7 (Sat Jan 14 2023)
+
+#### ⚠️ Pushed to `main`
+
+- remove env_file usage ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- #15 remove scheme from ALLOWED_HOSTS ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.6 (Fri Jan 13 2023)
 
 #### ⚠️ Pushed to `main`
