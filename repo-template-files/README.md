@@ -21,6 +21,7 @@ Your app will be automatically re-deployed with the latest code at: APP_URL
 
 ```
 git clone REPO_CLONE_URL
+cd APP_NAME
 ```
 
 > See an error? You might need to setup permissions [here's a guide how to setup repo clone permissions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
