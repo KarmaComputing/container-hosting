@@ -1,3 +1,15 @@
+# v0.0.10 (Sun Jan 15 2023)
+
+#### ⚠️ Pushed to `main`
+
+- add logging ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.9 (Sat Jan 14 2023)
 
 #### ⚠️ Pushed to `main`
