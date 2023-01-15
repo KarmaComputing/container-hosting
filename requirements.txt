@@ -7,3 +7,4 @@ bcrypt
 cryptography
 PyNaCl
 GitPython
+coloredlogs

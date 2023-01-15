@@ -6,6 +6,7 @@ from starlette.exceptions import HTTPException
 from starlette.responses import HTMLResponse
 from starlette.requests import Request
 
+from logger import logger
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -22,6 +23,8 @@ import shutil
 import secrets
 from dotenv import load_dotenv
 import subprocess
+
+log = logger
 
 load_dotenv(verbose=True)
 
@@ -52,7 +55,7 @@ def amber_encrypt(key: str, value: str, amber_file_location="./amber.yaml"):
 def generate_ssh_keys():
     """Generate public/private ssh keys
 
-    See also https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/
+    See also https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/ # noqa: E501
     """
     key = rsa.generate_private_key(
         public_exponent=65537,
@@ -90,9 +93,7 @@ def encrypt_github_secret(public_key: str, secret_value: str) -> str:
 
 async def homepage(request):
     """Homepage and display connect Github link"""
-    body = await request.body()
-    print(body)
-
+    log.debug("Homepage")
     client_id = GITHUB_OAUTH_CLIENT_ID
     state = f"{secrets.token_urlsafe(30)}---no-framework"
     state_rails = f"{secrets.token_urlsafe(30)}---rails"
@@ -181,7 +182,7 @@ async def githubcallback(request):
         "https://api.github.com/user/repos", headers=headers, data=json.dumps(data)
     )
     repo_url = req.json()["html_url"]
-    print(repo_url)
+    log.info(f"New container host started: {repo_url}")
 
     # Create repo secrets
     req = requests.get(
@@ -197,7 +198,7 @@ async def githubcallback(request):
             "encrypted_value": secret_Encrypted,
             "key_id": github_repo_public_key_id,
         }
-        req = requests.put(
+        req = requests.put(  # noqa: 203
             f"https://api.github.com/repos/{username}/{repo_name}/actions/secrets/{SECRET_NAME}",
             headers=headers,
             data=json.dumps(data),
@@ -465,6 +466,8 @@ async def githubcallback(request):
     origin = repo.remotes[0]
     repo.heads.main.set_tracking_branch(origin.refs.main)
     fetch = origin.fetch()[0]
+    log.info(fetch)
+    log.info("Oh no")
 
     # Commit amber.yaml secrets file to repo
     index = repo.index
@@ -532,7 +535,8 @@ async def blog(request):
 
 
 async def health(request):
-    print(request)
+    log.debug(request)
+    log.error("Testing error logging is working")
     return PlainTextResponse("OK")
 
 
