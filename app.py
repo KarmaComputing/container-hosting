@@ -467,7 +467,6 @@ async def githubcallback(request):
     repo.heads.main.set_tracking_branch(origin.refs.main)
     fetch = origin.fetch()[0]
     log.info(fetch)
-    log.info("Oh no")
 
     # Commit amber.yaml secrets file to repo
     index = repo.index
