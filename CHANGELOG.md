@@ -1,3 +1,16 @@
+# v0.0.11 (Tue Jan 17 2023)
+
+#### ⚠️ Pushed to `main`
+
+- correct .env.example ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- remove debug print ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.10 (Sun Jan 15 2023)
 
 #### ⚠️ Pushed to `main`
