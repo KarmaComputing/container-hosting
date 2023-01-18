@@ -23,6 +23,7 @@ import shutil
 import secrets
 from dotenv import load_dotenv
 import subprocess
+from signals import signal_new_repo
 
 log = logger
 
@@ -174,6 +175,9 @@ async def githubcallback(request):
     # Get email address so can do git commits with correct author information
     req = requests.get("https://api.github.com/user/emails", headers=headers)
     email = req.json()[0].get("email", None)
+
+    # Signal that a new repo is created
+    signal_new_repo.send()
 
     # Create a repo for organisation user has access to
     # req = requests.post("https://api.github.com/orgs/karmacomputing/repos", headers=headers, data=json.dumps(data))
@@ -535,8 +539,12 @@ async def blog(request):
 
 async def health(request):
     log.debug(request)
-    log.error("Testing error logging is working")
     return PlainTextResponse("OK")
+
+
+async def notify(request):
+    log.info(request)
+    return PlainTextResponse("Notification sent")
 
 
 async def not_found(request: Request, exc: HTTPException):
@@ -563,6 +571,7 @@ routes = [
     Route("/health", health, methods=["GET"]),
     Route("/githubcallback", githubcallback, methods=["GET"]),
     Route("/heroku-alternatives", blog, methods=["GET"]),
+    Route("/notify", notify, methods=["GET"]),
     Route("/{path:path}", catch_all),
 ]
 

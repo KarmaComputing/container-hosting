@@ -8,3 +8,5 @@ cryptography
 PyNaCl
 GitPython
 coloredlogs
+blinker
+background
