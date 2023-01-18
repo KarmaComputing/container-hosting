@@ -1,3 +1,15 @@
+# v0.0.12 (Wed Jan 18 2023)
+
+#### ⚠️ Pushed to `main`
+
+- signals & simple background tasks ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.11 (Tue Jan 17 2023)
 
 #### ⚠️ Pushed to `main`
