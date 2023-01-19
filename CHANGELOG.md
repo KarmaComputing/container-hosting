@@ -1,3 +1,17 @@
+# v0.0.16 (Thu Jan 19 2023)
+
+#### ⚠️ Pushed to `main`
+
+- remove link to ruby ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- templates/docker-container-secrets-management.html ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- inform of AMBER secret ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.15 (Thu Jan 19 2023)
 
 #### ⚠️ Pushed to `main`
