@@ -44,10 +44,11 @@ def signal_subscriber_new_repo(sender):
         github_repo_url = f"https://github.com/{github_username}/{repo_name}"
 
     subject = f"Your Container Hosting is ready {github_username}!🚀"
-    body = f""""Welcome {github_username}!\n\n
+    body = f"""Welcome {github_username}!\n\n
     Your container is hosted at: {app_url}\n\n
     Your container hosting repo is setup here: {github_repo_url}\n\n
-    Your app name and repo name is currently: {repo_name}\n\n
+    Your app name and repo name is currently: {repo_name}\n\n\n\n
+    Welcome to container hosting!
     """
 
     send_email(subject, SITE_ADMIN_EMAIL, user_email, body)
