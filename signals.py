@@ -41,11 +41,12 @@ def signal_subscriber_new_repo(sender):
         github_username = sender["github_username"]
     if "github_repo_origin" in sender:
         github_repo_origin = sender["github_repo_origin"]
+        github_repo_url = f"https://github.com/{github_username}/{repo_name}"
 
     subject = f"Your Container Hosting is ready {github_username}!🚀"
     body = f""""Welcome {github_username}!\n\n
     Your container is hosted at: {app_url}\n\n
-    Your container hosting repo is setup here: {github_repo_origin}\n\n
+    Your container hosting repo is setup here: {github_repo_url}\n\n
     Your app name and repo name is currently: {repo_name}\n\n
     """
 
