@@ -1,3 +1,15 @@
+# v0.0.13 (Thu Jan 19 2023)
+
+#### ⚠️ Pushed to `main`
+
+- send user email notification ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.12 (Wed Jan 18 2023)
 
 #### ⚠️ Pushed to `main`
