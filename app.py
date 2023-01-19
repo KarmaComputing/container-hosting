@@ -176,9 +176,6 @@ async def githubcallback(request):
     req = requests.get("https://api.github.com/user/emails", headers=headers)
     email = req.json()[0].get("email", None)
 
-    # Signal that a new repo is created
-    signal_new_repo.send()
-
     # Create a repo for organisation user has access to
     # req = requests.post("https://api.github.com/orgs/karmacomputing/repos", headers=headers, data=json.dumps(data))
     # Create repo for authenticated user
@@ -527,6 +524,18 @@ async def githubcallback(request):
 
     push = origin.push()[0]
     print(push.summary)
+
+    # Signal that a new repo is created
+    signal_new_repo.send(
+        {
+            "app_url": app_url,
+            "repo_name": repo_name,
+            "user_email": email,
+            "avatar_url": avatar_url,
+            "github_username": username,
+            "github_repo_origin": origin,
+        }
+    )
 
     return templates.TemplateResponse(
         "welcome.html", {"repo_url": repo_url, "request": request}
