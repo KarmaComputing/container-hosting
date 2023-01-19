@@ -534,6 +534,7 @@ async def githubcallback(request):
             "avatar_url": avatar_url,
             "github_username": username,
             "github_repo_origin": origin,
+            "AMBER_SECRET": AMBER_SECRET,
         }
     )
 

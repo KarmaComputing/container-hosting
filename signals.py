@@ -28,6 +28,7 @@ def signal_subscriber_new_repo(sender):
     avatar_url = ""
     github_username = ""
     github_repo_origin = ""
+    AMBER_SECRET = ""
 
     if "app_url" in sender:
         app_url = sender["app_url"]
@@ -42,12 +43,20 @@ def signal_subscriber_new_repo(sender):
     if "github_repo_origin" in sender:
         github_repo_origin = sender["github_repo_origin"]
         github_repo_url = f"https://github.com/{github_username}/{repo_name}"
+    if "AMBER_SECRET" in sender:
+        AMBER_SECRET = sender["AMBER_SECRET"]
+        SECRETS_URL = (
+            f"https://github.com/{github_username}/{repo_name}/settings/secrets/actions"
+        )
 
     subject = f"Your Container Hosting is ready {github_username}!🚀"
     body = f"""Welcome {github_username}!\n\n
     Your container is hosted at: {app_url}\n\n
     Your container hosting repo is setup here: {github_repo_url}\n\n
     Your app name and repo name is currently: {repo_name}\n\n\n\n
+    Your AMBER_SECRET (to store app secrets) is "{AMBER_SECRET}".\n
+    We recommend you change your AMBER_SECRET as soon as possible and save the\n
+    new value also at {SECRETS_URL}.\n\n\n\n
     Welcome to container hosting!
     """
 
