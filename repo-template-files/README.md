@@ -1,5 +1,17 @@
 # Go forth and build! 🚀
 
+## Tutorial: How to make your first commit 📹:
+
+This video example shows how to:
+
+- Edit your container code
+- Raise a new pull request
+- Deploy the newest version automatically 🚀
+
+https://user-images.githubusercontent.com/1718624/216366290-9bcac918-8605-4cf5-a98a-75bb8f722966.mp4
+
+
+
 By now, you have deployed a container, and in moments, you can visit your app
 live!
 
