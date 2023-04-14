@@ -1,3 +1,19 @@
+# v0.0.20 (Fri Apr 14 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Added deploy.yml file ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Added release.yml file ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Added .autorc file ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Added amber.yaml secrets file ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Added flask quickstart ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.19 (Fri Apr 14 2023)
 
 #### ⚠️ Pushed to `main`
