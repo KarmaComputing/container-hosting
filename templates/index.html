@@ -88,6 +88,19 @@ header {
 </ul>
 <small>Additional frameworks being added- ask!</small>
 
+<h2>But I already have a repo! How to I add container hosting to my existing app?</h2>
+
+<p>If you simply want to host your existing application in a container and host it,<br />
+enter your git repo url below and press submit, your repo will be updated with automated hosting, certificate, storage
+&amp; pipelines.</p>
+
+<br />
+<form action="/host-existing-repo" method="POST" id="existing_repo_form">
+    <label for="existing_repo" />Enter your existing repo url: </label>
+    <input type="text" id="existing_repo_url" name="existing_repo_url" placeholder="https://github.com/KarmaComputing/container-hosting" />
+    <input type="submit" value="Submit" /> <span>to add container hosting to your existing repo"</span>
+</form>
+
 <h3>What do I get?</h3>
 <p>You will get:</p>
 
@@ -132,6 +145,19 @@ for (i=0;i<debounceLinks.length;i++){
 	    document.location = destination;
 	});
 }
+
+document.getElementById("existing_repo_form").addEventListener("submit", function(e) {
+    console.log("existing_repo_form submitted");
+    e.preventDefault();
+    [_, _, git_host, git_org_name, git_repo_name] = existing_repo_url.value.split("/");
+    let github_authorize_url_existing_repo = "{{ github_authorize_url_existing_repo }}";
+    // Update github_authorize_url_existing_repo passing through git repo host, org name & host
+    // in auth state flow. To be clear, passing this informatino here has little to do with security,
+    // its simply a convenient means of passing that data during the flow for simplicity
+    // see https://www.ietf.org/rfc/rfc6749.txt
+    github_authorize_url_existing_repo = github_authorize_url_existing_repo.replace("UNTRUSTED_GIT_HOST", git_host).replace("UNTRUSTED_GIT_ORG_NAME", git_org_name).replace("UNTRUSTED_GIT_REPO_NAME", git_repo_name)
+    document.location = github_authorize_url_existing_repo;
+});
 </script>
 
 </html>

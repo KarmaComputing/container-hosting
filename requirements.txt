@@ -10,3 +10,4 @@ GitPython
 coloredlogs
 blinker
 background
+python-multipart
