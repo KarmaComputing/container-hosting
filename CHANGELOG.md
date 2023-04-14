@@ -1,3 +1,15 @@
+# v0.0.22 (Fri Apr 14 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Update deploy.yml ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.21 (Fri Apr 14 2023)
 
 #### 🐛 Bug Fix
