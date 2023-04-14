@@ -1,3 +1,15 @@
+# v0.0.18 (Fri Apr 14 2023)
+
+#### ⚠️ Pushed to `main`
+
+- create .docker-compose.yml ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.17 (Thu Feb 02 2023)
 
 #### ⚠️ Pushed to `main`
