@@ -1,3 +1,15 @@
+# v0.0.21 (Fri Apr 14 2023)
+
+#### 🐛 Bug Fix
+
+- Ref #28 As a developer I can add container-hosting to an *existing* repo [#29](https://github.com/KarmaComputing/container-hosting/pull/29) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.20 (Fri Apr 14 2023)
 
 #### ⚠️ Pushed to `main`
