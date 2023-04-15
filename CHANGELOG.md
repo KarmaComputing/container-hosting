@@ -1,3 +1,15 @@
+# v0.0.23 (Sat Apr 15 2023)
+
+#### 🐛 Bug Fix
+
+- #28 always use generated APP_NAME when setting up CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY [#30](https://github.com/KarmaComputing/container-hosting/pull/30) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.22 (Fri Apr 14 2023)
 
 #### ⚠️ Pushed to `main`
