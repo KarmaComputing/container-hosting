@@ -283,7 +283,7 @@ async def githubcallback(request):
     # POST CONTAINER_HOSTING_API_KEY to DOKKU_HOST_SSH_ENDPOINT
     data = {
         "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
-        "APP_NAME": repo_name,
+        "APP_NAME": APP_NAME,
         "CONTAINER_HOSTING_API_KEY": CONTAINER_HOSTING_API_KEY,
     }
     req = requests.post(
@@ -625,7 +625,8 @@ async def githubcallback(request):
     signal_new_repo.send(
         {
             "app_url": app_url,
-            "repo_name": APP_NAME,
+            "APP_NAME": APP_NAME,
+            "repo_name": repo_name,
             "user_email": email,
             "avatar_url": avatar_url,
             "github_username": username,
