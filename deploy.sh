@@ -3,27 +3,42 @@
 # read https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -euxo pipefail
 
-# Read .env settings
+# Read .env settings if .env is present (.env will not be present in a pipeline)
+# In that case, settings are read from environment
 # https://stackoverflow.com/a/30969768
 # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#:~:text=option%2Dname%3A-,allexport,-Same%20as%20%2Da
 # shellcheck disable=SC1091
 # shellcheck source=/dev/null
-set -o allexport && source .env && set +o allexport
+if [ -f .env ]; then
+    echo Reading from .env file
+    set -o allexport && source .env && set +o allexport
+else
+    echo No .env file present, assuming we\'re running within pipeline
+fi
 # shellcheck enable=all
 
-(set +x
-if [ -z "$WORKSPACE_DIR" ]; then
-    echo "💥 Error: WORKSPACE_DIR variable is not set or empty."
-    echo "Please set the WORKSPACE_DIR variable and try again."
-    exit 1
-fi
-)
-
-echo Creating WORKSPACE_DIR
-mkdir -p "$WORKSPACE_DIR"
 
 if [ "$RUNNING_WITHIN_CI_PIPELINE" -eq 0 ]; then
     echo We\'re not RUNNING_WITHIN_CI_PIPELINE so performing checkout to WORKSPACE_DIR "$WORKSPACE_DIR"
+
+    echo Checking for WORKSPACE_DIR
+    (set +x
+    if [ -z "$WORKSPACE_DIR" ]; then
+        echo "Please set the WORKSPACE_DIR variable and try again."
+        echo "💥 ERROR: WORKSPACE_DIR is not set but RUNNING_WITHIN_CI_PIPELINE was 0"
+        echo "If RUNNING_WITHIN_CI_PIPELINE=0 we expect you're running deploy.sh locally"
+        echo "and you're not running within an automated pipeline (GitHub actions/Gitlab Pipelines etc)."
+        echo "When running outside of a pipeline, deploy.sh needs to do a git checkout of"
+        echo "your repo, therefore you need to set WORKSPACE_DIR to a path"
+        echo "you'd like to clone the repo to."
+        echo "If you are trying to deploy within a pipeline, then change"
+        echo "RUNNING_WITHIN_CI_PIPELINE=0 to RUNNING_WITHIN_CI_PIPELINE=1"
+        exit 255
+    fi
+    )
+    echo Creating WORKSPACE_DIR
+    mkdir -p "$WORKSPACE_DIR"
+
     echo Checking for GIT_CLONE_URL_OR_PATH
     (set +x
     if [ -n "${GIT_CLONE_URL_OR_PATH:+notset}" ]; then
@@ -78,13 +93,14 @@ if [ "$RUNNING_WITHIN_CI_PIPELINE" -eq 0 ]; then
 	)
 
     echo Deleting current WORKSPACE_DIR "$WORKSPACE_DIR"
-    rm -rf "${WORKSPACE_DIR:?}/"* || true
-    rm -rf "${WORKSPACE_DIR:?}/"* || true
-    echo "Checking out git repo '$GIT_CLONE_URL_OR_PATH' to $WORKSPACE_DIR"
-    git clone "$GIT_CLONE_URL_OR_PATH" "$WORKSPACE_DIR"
+    #rm -rf "${WORKSPACE_DIR:?}/"* || true
+    #rm -rf "${WORKSPACE_DIR:?}/."* || true
+    #echo "Checking out git repo '$GIT_CLONE_URL_OR_PATH' to $WORKSPACE_DIR"
+    #TODO uncomment git clone "$GIT_CLONE_URL_OR_PATH" "$WORKSPACE_DIR"
     echo "Changing directory to root of GIT_CLONE_URL_OR_PATH"
     cd "$WORKSPACE_DIR"
 fi
+
 echo Checking if provided DOKKU_SSH_PRIVATE_KEY key requires a passphrase
 if ssh-keygen -y -P "" -f /dev/stdin <<<"$DOKKU_SSH_PRIVATE_KEY"&>/dev/null; then
         echo "✅ DOKKU_SSH_PRIVATE_KEY does not require a passphrase. OK."
@@ -120,19 +136,20 @@ mkdir -p ./bin
 curl -L https://github.com/fpco/amber/releases/download/v0.1.3/amber-x86_64-unknown-linux-musl > ./amber
 chmod +x ./amber
 mv ./amber ./bin/amber
+PATH=./bin:$PATH
 
 echo Setup ssh to talk to dokku host
 mkdir -p ~/.ssh
-amber exec -- sh -c "ssh-keyscan $DOKKU_HOST >> ~/.ssh/known_hosts"
+amber -v exec -- sh -c 'ssh-keyscan $DOKKU_HOST >> ~/.ssh/known_hosts'
 eval "$(ssh-agent -s)"
 ssh-add -D
 ssh-add - <<< "$DOKKU_SSH_PRIVATE_KEY"
 ssh-add -l
 SSH_ARGS="-F $SSH_configfile"
 
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku apps:create $APP_NAME || true"
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder:set $APP_NAME build-dir src"
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder-dockerfile:set $APP_NAME dockerfile-path Dockerfile"
+amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku apps:create $APP_NAME || true'
+amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder:set $APP_NAME build-dir src'
+amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder-dockerfile:set $APP_NAME dockerfile-path Dockerfile'
 
 # Set common env settings
 
@@ -144,37 +161,33 @@ amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_K
 # https://github.com/KarmaComputing/container-hosting/blob/91573f47cf0de5bbd3a35d7e8a7a019e184c2117/dokku-wrapper.py#L44
 #  
 
-echo Setting DB settings
+echo Set app envrionment settings
 
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_USER=$DB_USER'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_PASSWORD=$DB_PASSWORD'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_HOST=$DB_HOST'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_PORT=$DB_PORT'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_NAME=$DB_NAME'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME RAILS_DEVELOPMENT_HOSTS=$APP_NAME.containers.anotherwebservice.com'""
-
-# Database connection string (rails)
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DATABASE_URL=$RAILS_DATABASE_URL'""
-# Database connection string (django)
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME SECRET_KEY=$DJANGO_SECRET_KEY'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME ALLOWED_HOSTS=$ALLOWED_HOSTS'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DEBUG=$DJANGO_DEBUG'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_ENGINE=$DJANGO_ENGINE'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_NAME=$DJANGO_DB_NAME'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_HOST=$DJANGO_DB_HOST'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_USER=$DJANGO_DB_USER'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_PASSWORD=$DJANGO_DB_PASSWORD'""
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku config:set --no-restart $APP_NAME DB_PORT=$DJANGO_DB_PORT'""
-
+amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY \
+    dokku config:set --no-restart $APP_NAME \
+    DB_USER=$DB_USER\
+    DB_PASSWORD=$DB_PASSWORD\
+    DB_HOST=$DB_HOST\
+    DB_PORT=$DB_PORT\
+    DB_NAME=$DB_NAME\
+    RAILS_DEVELOPMENT_HOSTS=$APP_NAME.containers.anotherwebservice.com\
+    DATABASE_URL=$RAILS_DATABASE_URL\
+    SECRET_KEY=$DJANGO_SECRET_KEY\
+    ALLOWED_HOSTS=$ALLOWED_HOSTS\
+    DEBUG=$DJANGO_DEBUG\
+    DB_ENGINE=$DJANGO_ENGINE\
+    DB_NAME=$DJANGO_DB_NAME\
+    DB_HOST=$DJANGO_DB_HOST\
+    DB_USER=$DJANGO_DB_USER\
+    DB_PASSWORD=$DJANGO_DB_PASSWORD\
+    DB_PORT=$DJANGO_DB_PORT\
+    '
 # Get GITHUB_OWNER & REPO_NAME
 
 GITHUB_OWNER=$(cat .github/workflows/deploy.yml | grep -oE 'dokku git:sync.*' | sed 's/dokku git:sync --build container-.*https:\/\/github.com\/\(.*\)\/\(.*\)\.git.*/\1/')
 REPO_NAME=$(cat .github/workflows/deploy.yml | grep -oE 'dokku git:sync.*' | sed 's/dokku git:sync --build container-.*https:\/\/github.com\/\(.*\)\/\(.*\)\.git.*/\2/')
 
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku git:sync --build $APP_NAME https://github.com/'$GITHUB_OWNER'/'$REPO_NAME'.git main'""
+amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku git:sync --build $APP_NAME https://github.com/'$GITHUB_OWNER'/'$REPO_NAME'.git main'"'
 
 # Assign letsencrypt wildcard certificate
-amber exec -- sh -c "ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku certs:add $APP_NAME < cert-key.tar'""
-
-
-
+amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku certs:add $APP_NAME < /home/dokku/cert-key.tar'"'

@@ -14,3 +14,7 @@ python3 -m venv venv
 pip install -r -U requirements.txt
 ./run.sh
 ```
+
+## Adding ssh keys to dokku server(s)
+
+Read https://dokku.com/docs/deployment/user-management/#:~:text=format%20json%20admin-,Adding%20SSH%20keys,-You%20can%20add
