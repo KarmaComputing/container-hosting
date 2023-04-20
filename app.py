@@ -642,6 +642,7 @@ async def githubcallback(request):
     with open(
         f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/workflows/deploy.yml", "w"
     ) as fp:
+        deploy_yml = deploy_yml.replace("$APP_NAME", APP_NAME)
         deploy_yml = deploy_yml.replace("$GIT_USERNAME_OR_ORG", username)
         deploy_yml = deploy_yml.replace("$GIT_REPO_NAME", repo_name)
         fp.write(deploy_yml)
