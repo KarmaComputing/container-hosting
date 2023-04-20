@@ -604,14 +604,14 @@ async def githubcallback(request):
     fp.close()
 
     with open(
-        f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/.container-hosting/deploy.sh",
+        f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.container-hosting/deploy.sh",
         "w",
     ) as fp:
         fp.write(deploy_sh)
 
     index = repo.index
     index.add(
-        [f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/.container-hosting/deploy.sh"]
+        [f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.container-hosting/deploy.sh"]
     )
     index.commit("Added deploy.sh file")
 
