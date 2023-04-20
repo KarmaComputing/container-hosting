@@ -595,6 +595,26 @@ async def githubcallback(request):
     index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.autorc"])
     index.commit("Added .autorc file")
 
+    # Create deploy.sh in .container-hosting/deploy.sh
+    os.makedirs(
+        f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.container-hosting", exist_ok=True
+    )
+    fp = open("./repo-template-files/.container-hosting/deploy.sh")
+    deploy_sh = fp.read()
+    fp.close()
+
+    with open(
+        f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/.container-hosting/deploy.sh",
+        "w",
+    ) as fp:
+        fp.write(deploy_sh)
+
+    index = repo.index
+    index.add(
+        [f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/.container-hosting/deploy.sh"]
+    )
+    index.commit("Added deploy.sh file")
+
     # Create release.yml github workflow
     fp = open("./repo-template-files/.github/workflows/release.yml")
     release_yml = fp.read()
