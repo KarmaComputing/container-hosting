@@ -432,7 +432,7 @@ async def githubcallback(request):
         "SSH_CONFIG_FILE", "/dev/null", amber_file_location=amber_file_location
     )
     amber_encrypt(
-        "RUNNING_WITHIN_CI_PIPELINE", 1, amber_file_location=amber_file_location
+        "RUNNING_WITHIN_CI_PIPELINE", "1", amber_file_location=amber_file_location
     )
     amber_encrypt(
         "GIT_USERNAME_OR_ORG", git_org, amber_file_location=amber_file_location
