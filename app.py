@@ -618,11 +618,8 @@ async def githubcallback(request):
     with open(
         f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/workflows/deploy.yml", "w"
     ) as fp:
-        deploy_yml = deploy_yml.replace("GITHUB_OWNER", username)
-        # APP_NAME is for dokku, and is currently the same as
-        # the REPO_NAME.
-        deploy_yml = deploy_yml.replace("APP_NAME", APP_NAME)
-        deploy_yml = deploy_yml.replace("REPO_NAME", APP_NAME)
+        deploy_yml = deploy_yml.replace("$GIT_USERNAME_OR_ORG", username)
+        deploy_yml = deploy_yml.replace("$GIT_REPO_NAME", repo_name)
         fp.write(deploy_yml)
 
     index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.github/workflows/deploy.yml"])
