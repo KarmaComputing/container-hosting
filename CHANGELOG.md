@@ -1,3 +1,15 @@
+# v0.0.28 (Thu Apr 20 2023)
+
+#### ⚠️ Pushed to `main`
+
+- #31 mark deploy.sh executable ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.27 (Thu Apr 20 2023)
 
 #### ⚠️ Pushed to `main`
