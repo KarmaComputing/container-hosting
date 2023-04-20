@@ -12,8 +12,11 @@ print("🐧 In dokku-wrapper.py")
 unsafe_SSH_ORIGINAL_COMMAND = os.getenv("SSH_ORIGINAL_COMMAND")
 unsafe_api_key = str(unsafe_SSH_ORIGINAL_COMMAND[0:87])
 
-
 # https://github.com/pyca/pynacl/issues/192
+
+CERTIFICATE_WILDCARD_BUNDLE_PATH = os.getenv("CERTIFICATE_WILDCARD_BUNDLE_PATH")
+
+print(f"CERTIFICATE_WILDCARD_BUNDLE_PATH is: {CERTIFICATE_WILDCARD_BUNDLE_PATH}")
 
 api_key_to_container = {}
 # Example mapping between secret api keys to container app names
@@ -39,7 +42,6 @@ api_key_to_container = {
 con = sqlite3.connect("containers.db")
 cur = con.cursor()
 
-# print(f"Checking unsafe_api_key: {unsafe_api_key}")
 cur.execute(
     "SELECT * FROM container WHERE CONTAINER_HOSTING_API_KEY = ?", (unsafe_api_key,)
 )
@@ -69,13 +71,14 @@ except KeyError as e:
     exit()
 
 unsafe_requested_command = unsafe_SSH_ORIGINAL_COMMAND[88:]
-MAX_LENGTH = 150
+MAX_LENGTH = 700
 if len(unsafe_requested_command) > MAX_LENGTH:
     print(
         f"Command too long. Got: {len(unsafe_requested_command)}. MAX_LENGTH: {MAX_LENGTH}"
     )
     exit()
 
+# dokku config:set --no-restart container-fjxt9w4 ALLOWED_HOSTS=container-fjxt9w4.containers.anotherwebservice.com
 
 commands_allowlist = [
     "dokku apps:create APP_NAME",
@@ -86,7 +89,8 @@ commands_allowlist = [
     "dokku config:set --no-restart APP_NAME RAILS_DEVELOPMENT_HOSTS=APP_URL",
     "dokku config:set --no-restart APP_NAME DATABASE_URL=RAILS_DATABASE_URL",
     "dokku config:set --no-restart APP_NAME SECRET_KEY=DJANGO_SECRET_KEY",
-    "dokku config:set --no-restart APP_NAME ALLOWED_HOSTS='APP_URL'",
+    "dokku config:set --no-restart APP_NAME ALLOWED_HOSTS=APP_NAME.containers.anotherwebservice.com",
+    "dokku config:set APP_NAME ALLOWED_HOSTS=APP_NAME.containers.anotherwebservice.com",
     "dokku config:set --no-restart APP_NAME DEBUG=DJANGO_DEBUG",
     "dokku config:set --no-restart APP_NAME DB_ENGINE=DJANGO_ENGINE",
     "dokku config:set --no-restart APP_NAME DB_NAME=DJANGO_DB_NAME",
@@ -94,6 +98,7 @@ commands_allowlist = [
     "dokku config:set --no-restart APP_NAME DB_USER=DJANGO_DB_USER",
     "dokku config:set --no-restart APP_NAME DB_PASSWORD=DJANGO_DB_PASSWORD",
     "dokku config:set --no-restart APP_NAME DB_PORT=DJANGO_DB_PORT",
+    "dokku logs APP_NAME",
 ]
 
 valid_command = False
@@ -102,6 +107,7 @@ possible_commands = []
 for allowed_command in commands_allowlist:
     possible_commands.append(allowed_command.replace("APP_NAME", APP_NAME))
 
+del os.environ["SSH_ORIGINAL_COMMAND"]
 if unsafe_requested_command in possible_commands:
     valid_command = True
     print("✅ Valid command")
@@ -110,18 +116,61 @@ if unsafe_requested_command in possible_commands:
     # otherwise arg $1 which is CONTAINER_HOSTING_API_KEY gets passed to
     # dokku src:
     # https://github.com/dokku/dokku/blob/6a3933213c70a142587418bcf84835c832b09feb/dokku#L118
-    del os.environ["SSH_ORIGINAL_COMMAND"]
+
     # Get final_command from commands_allowlist -> possible_commands
     final_command = possible_commands[possible_commands.index(unsafe_requested_command)]
     # See https://docs.python.org/3/library/subprocess.html#security-considerations
+
     final_command = shlex.split(final_command)
     print(f"⏳ Running: {final_command}")
     subprocess.run(final_command)
-    print(f"✨ Completed run")
+    print("✨ Completed run")
+
+elif "config:set" in unsafe_requested_command:
+    # TODO IMPROVE THIS NOT IDEAL SECURITY
+    valid_command = True
+    unsafe_command = shlex.split(
+        f'dokku config:set --no-restart {APP_NAME} {unsafe_requested_command.split(f"{APP_NAME}")[1].strip()}'
+    )
+
+    print(f"⏳ Running: {unsafe_command}")
+    subprocess.run(unsafe_command)
+    print("✨ Completed run")
+
+if "cert-key.tar" in unsafe_requested_command:
+    # TODO IMPROVE THIS NOT IDEAL SECURITY
+    valid_command = True
+    print(
+        f"⏳ Running: dokku certs:add '{APP_NAME}' < $CERTIFICATE_WILDCARD_BUNDLE_PATHcert-key.tar"
+    )
+    subprocess.run(
+        f"dokku certs:add '{APP_NAME}' < {CERTIFICATE_WILDCARD_BUNDLE_PATH}cert-key.tar",
+        shell=True,
+    )
+    print("✨ Completed run")
+
+
+if "dokku git:sync" in unsafe_requested_command:
+    # TODO IMPROVE THIS NOT IDEAL SECURITY
+    valid_command = True
+    unsafe_github_username = (
+        unsafe_requested_command.split("github.com/")[1].split("main")[0].split("/")[0]
+    )
+    unsafe_command = shlex.split(
+        f"dokku git:sync --build {APP_NAME} https://github.com/{unsafe_github_username}/{APP_NAME}.git main"
+    )
+
+    print(f"⏳ Running: {unsafe_command}")
+    subprocess.run(unsafe_command)
+    print("✨ Completed run")
+
+    # Rebuild app
+    print(f"⏳ Rebuilding app: {APP_NAME}")
+    subprocess.run(shlex.split(f"dokku ps:rebuild {APP_NAME}"))
 
 
 if valid_command is False:
-    print("Invalid command. Possible commands are:")
+    print(f"Invalid command: {unsafe_requested_command}. \nPossible commands are:")
     for possible_command in commands_allowlist:
         print(possible_command.replace("APP_NAME", APP_NAME))
     exit()
