@@ -145,7 +145,7 @@ eval "$(ssh-agent -s)"
 ssh-add -D
 ssh-add - <<< "$DOKKU_SSH_PRIVATE_KEY"
 ssh-add -l
-SSH_ARGS="-F $SSH_configfile"
+SSH_ARGS="-F $SSH_CONFIG_FILE"
 
 amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku apps:create $APP_NAME || true'
 amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder:set $APP_NAME build-dir src'
