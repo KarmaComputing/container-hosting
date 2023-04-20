@@ -93,10 +93,10 @@ if [ "$RUNNING_WITHIN_CI_PIPELINE" -eq 0 ]; then
 	)
 
     echo Deleting current WORKSPACE_DIR "$WORKSPACE_DIR"
-    #rm -rf "${WORKSPACE_DIR:?}/"* || true
-    #rm -rf "${WORKSPACE_DIR:?}/."* || true
-    #echo "Checking out git repo '$GIT_CLONE_URL_OR_PATH' to $WORKSPACE_DIR"
-    #TODO uncomment git clone "$GIT_CLONE_URL_OR_PATH" "$WORKSPACE_DIR"
+    rm -rf "${WORKSPACE_DIR:?}/"* || true
+    rm -rf "${WORKSPACE_DIR:?}/."* || true
+    echo "Checking out git repo '$GIT_CLONE_URL_OR_PATH' to $WORKSPACE_DIR"
+    git clone "$GIT_CLONE_URL_OR_PATH" "$WORKSPACE_DIR"
     echo "Changing directory to root of GIT_CLONE_URL_OR_PATH"
     cd "$WORKSPACE_DIR"
 fi
@@ -147,9 +147,9 @@ ssh-add - <<< "$DOKKU_SSH_PRIVATE_KEY"
 ssh-add -l
 SSH_ARGS="-F $SSH_configfile"
 
-amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku apps:create $APP_NAME || true'
-amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder:set $APP_NAME build-dir src'
-amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder-dockerfile:set $APP_NAME dockerfile-path Dockerfile'
+amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku apps:create $APP_NAME || true'
+amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder:set $APP_NAME build-dir src'
+amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku builder-dockerfile:set $APP_NAME dockerfile-path Dockerfile'
 
 # Set common env settings
 
@@ -163,7 +163,7 @@ amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_K
 
 echo Set app envrionment settings
 
-amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY \
+amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY \
     dokku config:set --no-restart $APP_NAME \
     DB_USER=$DB_USER\
     DB_PASSWORD=$DB_PASSWORD\
@@ -180,14 +180,14 @@ amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_K
     DB_HOST=$DJANGO_DB_HOST\
     DB_USER=$DJANGO_DB_USER\
     DB_PASSWORD=$DJANGO_DB_PASSWORD\
-    DB_PORT=$DJANGO_DB_PORT\
-    '
-# Get GITHUB_OWNER & REPO_NAME
+    DB_PORT=$DJANGO_DB_PORT'
 
-GITHUB_OWNER=$(cat .github/workflows/deploy.yml | grep -oE 'dokku git:sync.*' | sed 's/dokku git:sync --build container-.*https:\/\/github.com\/\(.*\)\/\(.*\)\.git.*/\1/')
-REPO_NAME=$(cat .github/workflows/deploy.yml | grep -oE 'dokku git:sync.*' | sed 's/dokku git:sync --build container-.*https:\/\/github.com\/\(.*\)\/\(.*\)\.git.*/\2/')
 
-amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku git:sync --build $APP_NAME https://github.com/'$GITHUB_OWNER'/'$REPO_NAME'.git main'"'
+amber exec -- sh -c ''"ssh $SSH_ARGS"' dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY dokku git:sync --build $APP_NAME https://github.com/'"$GIT_USERNAME_OR_ORG"'/'"$GIT_REPO_NAME"'.git main'
 
 # Assign letsencrypt wildcard certificate
-amber exec -- sh -c 'ssh $SSH_ARGS dokku@$DOKKU_HOST -C $CONTAINER_HOSTING_API_KEY "'dokku certs:add $APP_NAME < /home/dokku/cert-key.tar'"'
+# Note that SSH_ARGS are not stored in amber, which is why they are expanded
+# vs the rest (e.g. DOKKU_HOST and CONTAINER_HOSTING_API_KEY which are stored
+# within amber.yaml secrets
+amber exec -v --unmasked -- sh -c 'ssh '"$SSH_ARGS"' dokku@$DOKKU_HOST -C "$CONTAINER_HOSTING_API_KEY dokku certs:add $APP_NAME < cert-key.tar"'
+
