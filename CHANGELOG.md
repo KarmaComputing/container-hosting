@@ -1,3 +1,15 @@
+# v0.0.25 (Thu Apr 20 2023)
+
+#### 🐛 Bug Fix
+
+- 31 generic pipeline runner support [#33](https://github.com/KarmaComputing/container-hosting/pull/33) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.24 (Thu Apr 20 2023)
 
 #### 🐛 Bug Fix
