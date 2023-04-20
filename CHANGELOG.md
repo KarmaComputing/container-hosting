@@ -1,3 +1,15 @@
+# v0.0.27 (Thu Apr 20 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Update app.py ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.26 (Thu Apr 20 2023)
 
 #### ⚠️ Pushed to `main`
