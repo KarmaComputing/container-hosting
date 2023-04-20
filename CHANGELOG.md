@@ -1,3 +1,22 @@
+# v0.0.24 (Thu Apr 20 2023)
+
+#### 🐛 Bug Fix
+
+- #31 dont print path CERTIFICATE_WILDCARD_BUNDLE_PATH [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- #31 tempate deploy.yml generic pipeline [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- SSH_configfile -> SSH_CONFIG_FILE #31 [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- #31 SSH_configfile -> SSH_CONFIG_FILE [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- #31 refactor dokku-wrapper.py [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- ref #31 refactor deploy.sh [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Ref #31 deploy.sh don't expand amber exec vars [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- wip Fix #31 add deploy.sh [#32](https://github.com/KarmaComputing/container-hosting/pull/32) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.23 (Sat Apr 15 2023)
 
 #### 🐛 Bug Fix
