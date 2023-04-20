@@ -428,6 +428,13 @@ async def githubcallback(request):
     )
 
     amber_encrypt("DOKKU_HOST", DOKKU_HOST, amber_file_location=amber_file_location)
+    amber_encrypt(
+        "RUNNING_WITHIN_CI_PIPELINE", 1, amber_file_location=amber_file_location
+    )
+    amber_encrypt(
+        "GIT_USERNAME_OR_ORG", git_org, amber_file_location=amber_file_location
+    )
+    amber_encrypt("GIT_REPO_NAME", repo_name, amber_file_location=amber_file_location)
 
     # Set common ENV settings across all framworks/apps
     amber_encrypt("DB_USER", DB_USER, amber_file_location=amber_file_location)
