@@ -429,6 +429,9 @@ async def githubcallback(request):
 
     amber_encrypt("DOKKU_HOST", DOKKU_HOST, amber_file_location=amber_file_location)
     amber_encrypt(
+        "SSH_CONFIG_FILE", "/dev/null", amber_file_location=amber_file_location
+    )
+    amber_encrypt(
         "RUNNING_WITHIN_CI_PIPELINE", 1, amber_file_location=amber_file_location
     )
     amber_encrypt(
