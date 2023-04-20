@@ -1,3 +1,16 @@
+# v0.0.30 (Thu Apr 20 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of github.com:KarmaComputing/container-hosting ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- #31 add APP_NAME to standard pipeline ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.29 (Thu Apr 20 2023)
 
 #### ⚠️ Pushed to `main`
