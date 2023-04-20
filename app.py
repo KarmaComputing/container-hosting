@@ -25,6 +25,8 @@ from dotenv import load_dotenv
 import subprocess
 from signals import signal_new_repo
 import string
+from pathlib import Path
+import stat
 
 """
 Create automated deploys for repos both new and existing
@@ -609,10 +611,12 @@ async def githubcallback(request):
     ) as fp:
         fp.write(deploy_sh)
 
+    # Mark deploy.sh execute bit
+    f = Path(f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.container-hosting/deploy.sh")
+    f.chmod(f.stat().st_mode | stat.S_IEXEC)
+
     index = repo.index
-    index.add(
-        [f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.container-hosting/deploy.sh"]
-    )
+    index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/.container-hosting/deploy.sh"])
     index.commit("Added deploy.sh file")
 
     # Create release.yml github workflow
