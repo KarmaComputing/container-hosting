@@ -16,8 +16,6 @@ unsafe_api_key = str(unsafe_SSH_ORIGINAL_COMMAND[0:87])
 
 CERTIFICATE_WILDCARD_BUNDLE_PATH = os.getenv("CERTIFICATE_WILDCARD_BUNDLE_PATH")
 
-print(f"CERTIFICATE_WILDCARD_BUNDLE_PATH is: {CERTIFICATE_WILDCARD_BUNDLE_PATH}")
-
 api_key_to_container = {}
 # Example mapping between secret api keys to container app names
 """
