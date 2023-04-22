@@ -1,3 +1,16 @@
+# v0.0.33 (Sat Apr 22 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of github.com:KarmaComputing/container-hosting ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- store GIT_USERNAME_OR_ORG in key value store during container creation ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.32 (Sat Apr 22 2023)
 
 #### ⚠️ Pushed to `main`
