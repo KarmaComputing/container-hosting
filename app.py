@@ -604,6 +604,17 @@ async def githubcallback(request):
         # If existing repo, default to adding flask quickstart
         add_flask_quickstart()
 
+        # Update repo homepage url
+        data = {
+            "homepage": app_url,
+        }
+        req = requests.patch(
+            f"https://api.github.com/repos/{git_org}/{repo_name}",
+            headers=headers,
+            data=json.dumps(data),
+        )
+        print(req.json())
+
     # git push the repo
     origin = repo.remotes[0]
     repo.heads.main.set_tracking_branch(origin.refs.main)
