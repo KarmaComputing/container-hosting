@@ -418,6 +418,22 @@ async def githubcallback(request):
     except requests.exceptions.ConnectTimeout as e:
         print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
 
+    print("POST GIT_USERNAME_OR_ORG to DOKKU_HOST_SSH_ENDPOINT STORE-KEY-VALUE")
+    KEY = f"{APP_NAME}:GIT_USERNAME_OR_ORG"
+    data = {
+        "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
+        "APP_NAME": APP_NAME,
+        "KEY": KEY,
+        "VALUE": git_org,  # git_org contains username if not an org
+    }
+    try:
+        print("Posting GIT_USERNAME_OR_ORG to DOKKU_HOST_SSH_ENDPOINT")
+        req = requests.post(
+            DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data, timeout=10
+        )
+    except requests.exceptions.ConnectTimeout as e:
+        print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
+
     # Store AMBER_SECRET in github secrets (this is the (only?) secret which
     # needs to be stored in the CI/CD provider (Github) secrets tool.
     github_store_secret("AMBER_SECRET", AMBER_SECRET)
