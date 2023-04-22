@@ -1,3 +1,16 @@
+# v0.0.32 (Sat Apr 22 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of github.com:KarmaComputing/container-hosting ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- pass git_org to deploy_yml ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.31 (Fri Apr 21 2023)
 
 #### ⚠️ Pushed to `main`
