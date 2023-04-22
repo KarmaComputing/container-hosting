@@ -16,6 +16,15 @@ unsafe_api_key = str(unsafe_SSH_ORIGINAL_COMMAND[0:87])
 
 CERTIFICATE_WILDCARD_BUNDLE_PATH = os.getenv("CERTIFICATE_WILDCARD_BUNDLE_PATH")
 
+
+unsafe_requested_command = unsafe_SSH_ORIGINAL_COMMAND[88:]
+MAX_LENGTH = 700
+if len(unsafe_requested_command) > MAX_LENGTH:
+    print(
+        f"Command too long. Got: {len(unsafe_requested_command)}. MAX_LENGTH: {MAX_LENGTH}"
+    )
+    exit()
+
 api_key_to_container = {}
 # Example mapping between secret api keys to container app names
 """
@@ -60,21 +69,67 @@ if APP_FOUND is False:
     print("Unable to find app, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
     exit()
 
-print("🔓 Valid api key")
-
 try:
     print(f"✅ Located APP_NAME: {APP_NAME}")
 except KeyError as e:
     print(f"Error getting app setting: {e}")
     exit()
 
-unsafe_requested_command = unsafe_SSH_ORIGINAL_COMMAND[88:]
-MAX_LENGTH = 700
-if len(unsafe_requested_command) > MAX_LENGTH:
-    print(
-        f"Command too long. Got: {len(unsafe_requested_command)}. MAX_LENGTH: {MAX_LENGTH}"
-    )
+print("🔓 Valid api key")
+
+print("👀 Getting GIT_USERNAME_OR_ORG")
+
+con = sqlite3.connect("key_value_store.db")
+cur = con.cursor()
+
+cur.execute(
+   f"select * from key_value_store WHERE key = '{APP_NAME}:GIT_USERNAME_OR_ORG'"
+)
+
+FOUND_GIT_USERNAME_OR_ORG = False
+for row in cur.fetchall():
+    try:
+        GIT_USERNAME_OR_ORG = row[1]
+        logging.info(f"Found GIT_USERNAME_OR_ORG: {GIT_USERNAME_OR_ORG} for container {row[0]}")
+        FOUND_GIT_USERNAME_OR_ORG = True
+
+    except (IndexError, Exception) as e:
+        logging.error(f"Could not locate GIT_USERNAME_OR_ORG: {e}")
+
+if FOUND_GIT_USERNAME_OR_ORG is False:
+    logging.error("Unable to find GIT_USERNAME_OR_ORG")
+    print("Unable to find GIT_USERNAME_OR_ORG, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
     exit()
+
+
+print("✅ Matched GIT_USERNAME_OR_ORG")
+
+
+print("👀 Getting GIT_REPO_NAME")
+
+cur.execute(
+   f"select * from key_value_store WHERE key = '{APP_NAME}:GIT_REPO_NAME'"
+)
+
+FOUND_GIT_REPO_NAME = False
+for row in cur.fetchall():
+    try:
+        GIT_REPO_NAME = row[1]
+        logging.info(f"Found GIT_REPO_NAME: {GIT_REPO_NAME} for container {row[0]}")
+        FOUND_GIT_REPO_NAME= True
+
+    except (IndexError, Exception) as e:
+        logging.error(f"Could not locate GIT_REPO_NAME: {e}")
+
+if FOUND_GIT_REPO_NAME is False:
+    logging.error("Unable to find GIT_REPO_NAME")
+    print("Unable to find GIT_REPO_NAME, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
+    exit()
+
+
+print("✅ Matched GIT_REPO_NAME")
+
+
 
 # dokku config:set --no-restart container-fjxt9w4 ALLOWED_HOSTS=container-fjxt9w4.containers.anotherwebservice.com
 
@@ -151,11 +206,8 @@ if "cert-key.tar" in unsafe_requested_command:
 if "dokku git:sync" in unsafe_requested_command:
     # TODO IMPROVE THIS NOT IDEAL SECURITY
     valid_command = True
-    unsafe_github_username = (
-        unsafe_requested_command.split("github.com/")[1].split("main")[0].split("/")[0]
-    )
     unsafe_command = shlex.split(
-        f"dokku git:sync --build {APP_NAME} https://github.com/{unsafe_github_username}/{APP_NAME}.git main"
+        f"dokku git:sync --build {APP_NAME} https://github.com/{GIT_USERNAME_OR_ORG}/{GIT_REPO_NAME}.git main"
     )
 
     print(f"⏳ Running: {unsafe_command}")
