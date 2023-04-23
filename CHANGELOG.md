@@ -1,3 +1,16 @@
+# v0.0.39 (Sun Apr 23 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of github.com:KarmaComputing/container-hosting ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- add help to how to grant acces with static image help ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.38 (Sun Apr 23 2023)
 
 #### ⚠️ Pushed to `main`
