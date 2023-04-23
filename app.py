@@ -257,6 +257,17 @@ async def githubcallback(request):
         f"https://api.github.com/repos/{git_org}/{repo_name}/actions/secrets/public-key",
         headers=headers,
     ).json()
+
+    # Check access
+    try:
+        if req["message"] == "Must have admin rights to Repository.":
+            return HTMLResponse(
+                "You must have admin rights to the Repository. Go to your repo settings and make sure you're an admin then try again.\nNote you may need to logout/log in again (or use incognito mode) to reset your session",
+                status_code=403,
+            )
+    except Exception as e:
+        log.error(f"Exception getting repo public key: {e}")
+
     github_repo_public_key = req["key"]
     github_repo_public_key_id = req["key_id"]
 
