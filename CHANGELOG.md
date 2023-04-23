@@ -1,3 +1,16 @@
+# v0.0.37 (Sun Apr 23 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Merge branch 'main' of github.com:KarmaComputing/container-hosting ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Fix release workflow write permissions ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.36 (Sat Apr 22 2023)
 
 #### ⚠️ Pushed to `main`
