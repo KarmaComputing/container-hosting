@@ -1,4 +1,6 @@
 from starlette.applications import Starlette
+from starlette.routing import Mount
+from starlette.staticfiles import StaticFiles
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.templating import Jinja2Templates
@@ -262,7 +264,7 @@ async def githubcallback(request):
     try:
         if req["message"] == "Must have admin rights to Repository.":
             return HTMLResponse(
-                "You must have admin rights to the Repository. Go to your repo settings and make sure you're an admin then try again.\nNote you may need to logout/log in again (or use incognito mode) to reset your session",
+                "<h1>Oops sorry please click 'grant' first- here's what you need to do:</h1><p>It looks like you forgot to click 'Grant' access during the oauth flow. You must first grant access to <em>your</em> repo/organisation (and have admin rights to that Repository).<br />How? Follow these steps:<br />Try again using incognito mode, and remember to first click 'Grant' next to your organisation name, and <em>then</em> press the green 'Authorize' button. <a href='/'>Open this link in incognito mode and try again.</a><br />Note: You can revoke access at any time by visiting https://github.com/organizations/<your-organization-name/settings/oauth_application_policy</p><br /><img src='/static/grant-permissions-how-to.png' style='max-width: 500px' />",
                 status_code=403,
             )
     except Exception as e:
@@ -765,6 +767,7 @@ routes = [
     Route("/githubcallback", githubcallback, methods=["GET"]),
     Route("/heroku-alternatives", blog, methods=["GET"]),
     Route("/notify", notify, methods=["GET"]),
+    Mount("/static", app=StaticFiles(directory="static"), name="static"),
     Route("/{path:path}", catch_all),
 ]
 
