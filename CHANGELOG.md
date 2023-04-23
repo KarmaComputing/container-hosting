@@ -1,3 +1,15 @@
+# v0.0.38 (Sun Apr 23 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Add helpful error message if incorrect repo permissions ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.37 (Sun Apr 23 2023)
 
 #### ⚠️ Pushed to `main`
