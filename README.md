@@ -27,3 +27,9 @@ If you are running dokku on a remote server remember to put your public key into
 ## Adding ssh keys to dokku server(s)
 
 Read https://dokku.com/docs/deployment/user-management/#:~:text=format%20json%20admin-,Adding%20SSH%20keys,-You%20can%20add
+
+## Additional Information
+
+Dokku provides an integration with Caddy proxy which is installed if docker-compose-plugin is installed.
+For this case, we will need to remove Caddy proxy since it uses port 80 and cause port conflicts with nginx
+To remove Caddy simple run ```dokku caddy:stop```
