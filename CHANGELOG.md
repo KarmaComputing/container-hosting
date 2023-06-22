@@ -1,3 +1,15 @@
+# v0.0.40 (Thu Jun 22 2023)
+
+#### 🐛 Bug Fix
+
+- #35-updating-the-readme [#36](https://github.com/KarmaComputing/container-hosting/pull/36) ([@joeltejeda](https://github.com/joeltejeda))
+
+#### Authors: 1
+
+- [@joeltejeda](https://github.com/joeltejeda)
+
+---
+
 # v0.0.39 (Sun Apr 23 2023)
 
 #### ⚠️ Pushed to `main`
