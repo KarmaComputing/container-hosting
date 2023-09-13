@@ -1,3 +1,15 @@
+# v0.0.42 (Wed Sep 13 2023)
+
+#### ⚠️ Pushed to `main`
+
+- only bail if 'message' in github callback response ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.41 (Wed Sep 13 2023)
 
 #### ⚠️ Pushed to `main`
