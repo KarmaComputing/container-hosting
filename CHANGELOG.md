@@ -1,3 +1,15 @@
+# v0.0.41 (Wed Sep 13 2023)
+
+#### ⚠️ Pushed to `main`
+
+- resolve merge confl readme ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.40 (Thu Jun 22 2023)
 
 #### 🐛 Bug Fix
