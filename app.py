@@ -262,7 +262,10 @@ async def githubcallback(request):
 
     # Check access
     try:
-        if req["message"] == "Must have admin rights to Repository.":
+        if (
+            "message" in req
+            and req["message"] == "Must have admin rights to Repository."
+        ):
             return HTMLResponse(
                 "<h1>Oops sorry please click 'grant' first- here's what you need to do:</h1><p>It looks like you forgot to click 'Grant' access during the oauth flow. You must first grant access to <em>your</em> repo/organisation (and have admin rights to that Repository).<br />How? Follow these steps:<br />Try again using incognito mode, and remember to first click 'Grant' next to your organisation name, and <em>then</em> press the green 'Authorize' button. <a href='/'>Open this link in incognito mode and try again.</a><br />Note: You can revoke access at any time by visiting https://github.com/organizations/<your-organization-name/settings/oauth_application_policy</p><br /><img src='/static/grant-permissions-how-to.png' style='max-width: 500px' />",
                 status_code=403,
