@@ -1,3 +1,15 @@
+# v0.0.43 (Sat Sep 23 2023)
+
+#### ⚠️ Pushed to `main`
+
+- temp remove no-framework option ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.42 (Wed Sep 13 2023)
 
 #### ⚠️ Pushed to `main`
