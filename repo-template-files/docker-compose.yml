@@ -20,7 +20,7 @@ services:
       DB_PASSWORD: password
       DB_PORT: 3306
       DB_USER: app_user
-      DEBUG: True
+      DEBUG: "True"
       SECRET_KEY: local_development
 
 
