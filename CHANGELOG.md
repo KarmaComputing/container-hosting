@@ -1,3 +1,15 @@
+# v0.0.44 (Tue Oct 10 2023)
+
+#### 🐛 Bug Fix
+
+- FIX #38 docker-compose locally [#39](https://github.com/KarmaComputing/container-hosting/pull/39) ([@joeltejeda](https://github.com/joeltejeda))
+
+#### Authors: 1
+
+- [@joeltejeda](https://github.com/joeltejeda)
+
+---
+
 # v0.0.43 (Sat Sep 23 2023)
 
 #### ⚠️ Pushed to `main`
