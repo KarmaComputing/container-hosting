@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from db import get_db, close_db
 import sqlalchemy
+from sqlalchemy import text
 from logger import log
 
 app = Flask(__name__)
@@ -18,7 +19,7 @@ def health():
     db = get_db()
     health = "BAD"
     try:
-        result = db.execute("SELECT NOW()")
+        result = db.execute(text("SELECT NOW()"))
         result = result.one()
         health = "OK"
         log.info(f"/health reported OK including database connection: {result}")
