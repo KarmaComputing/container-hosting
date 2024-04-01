@@ -62,6 +62,7 @@ Need some help to get started?
 - [**Flask** quickstart guide](https://flask.palletsprojects.com/en/2.2.x/quickstart/) ⚗️ 🐍
 - [**Django** quide](https://docs.djangoproject.com/en/4.1/topics/http/views/) 📰
 - [**Ruby** quickstart guide](https://github.com/KarmaComputing/rails-quickstart) 💎
+- [**Express** quickstart guide](https://expressjs.com/en/starter/hello-world.html) 🟢
 
 # Debugging
 

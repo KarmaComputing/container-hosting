@@ -7,3 +7,4 @@ venv
 *.db
 target
 workspace
+node_modules
