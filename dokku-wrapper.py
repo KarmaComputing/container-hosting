@@ -69,6 +69,13 @@ if APP_FOUND is False:
     print("Unable to find app, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
     exit()
 
+print(f"🐌 Limiting app CPU resources for app: {APP_NAME}")
+subprocess.run(f"dokku resource:limit --cpu 1.5 {APP_NAME}", shell=True)
+
+print(f"🧠 Limiting app memory resources for app: {APP_NAME}")
+subprocess.run(f"dokku resource:limit --memory 500m {APP_NAME}", shell=True)
+
+
 try:
     print(f"✅ Located APP_NAME: {APP_NAME}")
 except KeyError as e:
@@ -83,14 +90,16 @@ con = sqlite3.connect("key_value_store.db")
 cur = con.cursor()
 
 cur.execute(
-   f"select * from key_value_store WHERE key = '{APP_NAME}:GIT_USERNAME_OR_ORG'"
+    f"select * from key_value_store WHERE key = '{APP_NAME}:GIT_USERNAME_OR_ORG'"
 )
 
 FOUND_GIT_USERNAME_OR_ORG = False
 for row in cur.fetchall():
     try:
         GIT_USERNAME_OR_ORG = row[1]
-        logging.info(f"Found GIT_USERNAME_OR_ORG: {GIT_USERNAME_OR_ORG} for container {row[0]}")
+        logging.info(
+            f"Found GIT_USERNAME_OR_ORG: {GIT_USERNAME_OR_ORG} for container {row[0]}"
+        )
         FOUND_GIT_USERNAME_OR_ORG = True
 
     except (IndexError, Exception) as e:
@@ -98,7 +107,9 @@ for row in cur.fetchall():
 
 if FOUND_GIT_USERNAME_OR_ORG is False:
     logging.error("Unable to find GIT_USERNAME_OR_ORG")
-    print("Unable to find GIT_USERNAME_OR_ORG, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
+    print(
+        "Unable to find GIT_USERNAME_OR_ORG, perhaps your CONTAINER_HOSTING_API_KEY is wrong?"
+    )
     exit()
 
 
@@ -107,28 +118,27 @@ print("✅ Matched GIT_USERNAME_OR_ORG")
 
 print("👀 Getting GIT_REPO_NAME")
 
-cur.execute(
-   f"select * from key_value_store WHERE key = '{APP_NAME}:GIT_REPO_NAME'"
-)
+cur.execute(f"select * from key_value_store WHERE key = '{APP_NAME}:GIT_REPO_NAME'")
 
 FOUND_GIT_REPO_NAME = False
 for row in cur.fetchall():
     try:
         GIT_REPO_NAME = row[1]
         logging.info(f"Found GIT_REPO_NAME: {GIT_REPO_NAME} for container {row[0]}")
-        FOUND_GIT_REPO_NAME= True
+        FOUND_GIT_REPO_NAME = True
 
     except (IndexError, Exception) as e:
         logging.error(f"Could not locate GIT_REPO_NAME: {e}")
 
 if FOUND_GIT_REPO_NAME is False:
     logging.error("Unable to find GIT_REPO_NAME")
-    print("Unable to find GIT_REPO_NAME, perhaps your CONTAINER_HOSTING_API_KEY is wrong?")
+    print(
+        "Unable to find GIT_REPO_NAME, perhaps your CONTAINER_HOSTING_API_KEY is wrong?"
+    )
     exit()
 
 
 print("✅ Matched GIT_REPO_NAME")
-
 
 
 # dokku config:set --no-restart container-fjxt9w4 ALLOWED_HOSTS=container-fjxt9w4.containers.anotherwebservice.com

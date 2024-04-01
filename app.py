@@ -116,6 +116,7 @@ async def homepage(request):
     state_rails = f"{secrets.token_urlsafe(30)}---rails"
     state_django = f"{secrets.token_urlsafe(30)}---django"
     state_flask = f"{secrets.token_urlsafe(30)}---flask"
+    state_expressFramework = f"{secrets.token_urlsafe(30)}---expressFramework"
     # UNTRUSTED_REPO_INFO gets replaced by the users given git host, org name and repo name
     state_existing_repo = f"{secrets.token_urlsafe(30)}---existing_repo-UNTRUSTED_GIT_HOST|UNTRUSTED_GIT_ORG_NAME|UNTRUSTED_GIT_REPO_NAME"
 
@@ -125,6 +126,7 @@ async def homepage(request):
     github_authorize_url_rails = f"{github_oauth_auth_url}client_id={client_id}&state={state_rails}&scope=workflow%20repo%20user:email"  # noqa: E501
     github_authorize_url_django = f"{github_oauth_auth_url}client_id={client_id}&state={state_django}&scope=workflow%20repo%20user:email"  # noqa: E501
     github_authorize_url_flask = f"{github_oauth_auth_url}client_id={client_id}&state={state_flask}&scope=workflow%20repo%20user:email"  # noqa: E501
+    github_authorize_url_expressFramework = f"{github_oauth_auth_url}client_id={client_id}&state={state_expressFramework}&scope=workflow%20repo%20user:email"  # noqa: E501
     github_authorize_url_existing_repo = f"{github_oauth_auth_url}client_id={client_id}&state={state_existing_repo}&scope=workflow%20repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
@@ -134,6 +136,7 @@ async def homepage(request):
             "github_authorize_url_rails": github_authorize_url_rails,
             "github_authorize_url_django": github_authorize_url_django,
             "github_authorize_url_flask": github_authorize_url_flask,
+            "github_authorize_url_expressFramework": github_authorize_url_expressFramework,
             "github_authorize_url_existing_repo": github_authorize_url_existing_repo,
             "request": request,
         },
@@ -576,6 +579,22 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/requirements.txt"])
         index.commit("Added flask quickstart")
 
+    def add_expressFramework_quickstart():
+        # add framework quickstart files
+        shutil.copytree(
+            f"{BASE_PATH}/repo-template-files/quickstarts/express-quickstart/src",
+            f"./tmp-cloned-repos/{APP_NAME}/src",
+            dirs_exist_ok=True,
+        )
+        # add/commit framework files to repo
+        index = repo.index
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/package.json"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/package-lock.json"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/index.js"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/entrypoint.sh"])
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/Dockerfile"])
+        index.commit("Added express framework quickstart")
+
     if "rails" in state:
         # add framework quickstart files
         shutil.copytree(
@@ -608,6 +627,9 @@ async def githubcallback(request):
 
     if "flask" in state:
         add_flask_quickstart()
+
+    if "expressFramework" in state:
+        add_expressFramework_quickstart()
 
     if "---existing_repo-" in state:
         # In this case don't create a new repo, only
