@@ -10,5 +10,3 @@ RUN chown -R node:node /app
 USER node
 
 ENTRYPOINT /app/src/entrypoint.sh
-
-EXPOSE 3000
