@@ -601,6 +601,18 @@ async def githubcallback(request):
         index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/Dockerfile"])
         index.commit("Added express framework quickstart")
 
+    def add_flowise_quickstart():
+        # add framework quickstart files
+        shutil.copytree(
+            f"{BASE_PATH}/repo-template-files/quickstarts/applications/flowise-quickstart/src",
+            f"./tmp-cloned-repos/{APP_NAME}/src",
+            dirs_exist_ok=True,
+        )
+        # add/commit framework files to repo
+        index = repo.index
+        index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/Dockerfile"])
+        index.commit("Added flowise application quickstart")
+
     if "rails" in state:
         # add framework quickstart files
         shutil.copytree(
@@ -653,6 +665,7 @@ async def githubcallback(request):
             )
         except requests.exceptions.ConnectTimeout as e:
             print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
+        add_flowise_quickstart()
 
     if "---existing_repo-" in state:
         # In this case don't create a new repo, only
