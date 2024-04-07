@@ -1,3 +1,24 @@
+# v0.0.45 (Sun Apr 07 2024)
+
+#### 🐛 Bug Fix
+
+- Fix #44 Express quickstart add Nodejs. Limit app cpu [#45](https://github.com/KarmaComputing/container-hosting/pull/45) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Fix #41 document how to change the application port listened on using EXPOSE [#43](https://github.com/KarmaComputing/container-hosting/pull/43) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### ⚠️ Pushed to `main`
+
+- bump auto shipit v10.32.1 -> v11.1.6 ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Update Dockerfile standardise app port listen 5000 ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Update index.js standardise app port listen 5000 ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- Create git-auto-issue-branch-creation.yml ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- use sqlalchemy.text for healthcheck ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.44 (Tue Oct 10 2023)
 
 #### 🐛 Bug Fix
