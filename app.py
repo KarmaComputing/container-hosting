@@ -57,6 +57,8 @@ CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY = os.getenv(
     "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY"
 )
 DOKKU_WRAPPER_FULL_PATH = os.getenv("DOKKU_WRAPPER_FULL_PATH")
+# Default port to 5000
+# See https://dokku.com/docs~v0.15.5/networking/port-management/#:~:text=Applications%20not%20using-,EXPOSE,-Any%20application%20that
 
 # See https://github.com/dokku/dokku-letsencrypt/pull/211
 
@@ -117,6 +119,7 @@ async def homepage(request):
     state_django = f"{secrets.token_urlsafe(30)}---django"
     state_flask = f"{secrets.token_urlsafe(30)}---flask"
     state_expressFramework = f"{secrets.token_urlsafe(30)}---expressFramework"
+    state_flowise = f"{secrets.token_urlsafe(30)}---flowise"
     # UNTRUSTED_REPO_INFO gets replaced by the users given git host, org name and repo name
     state_existing_repo = f"{secrets.token_urlsafe(30)}---existing_repo-UNTRUSTED_GIT_HOST|UNTRUSTED_GIT_ORG_NAME|UNTRUSTED_GIT_REPO_NAME"
 
@@ -127,6 +130,8 @@ async def homepage(request):
     github_authorize_url_django = f"{github_oauth_auth_url}client_id={client_id}&state={state_django}&scope=workflow%20repo%20user:email"  # noqa: E501
     github_authorize_url_flask = f"{github_oauth_auth_url}client_id={client_id}&state={state_flask}&scope=workflow%20repo%20user:email"  # noqa: E501
     github_authorize_url_expressFramework = f"{github_oauth_auth_url}client_id={client_id}&state={state_expressFramework}&scope=workflow%20repo%20user:email"  # noqa: E501
+    github_authorize_url_flowise = f"{github_oauth_auth_url}client_id={client_id}&state={state_flowise}&scope=workflow%20repo%20user:email"  # noqa: E501
+
     github_authorize_url_existing_repo = f"{github_oauth_auth_url}client_id={client_id}&state={state_existing_repo}&scope=workflow%20repo%20user:email"  # noqa: E501
 
     return templates.TemplateResponse(
@@ -137,6 +142,7 @@ async def homepage(request):
             "github_authorize_url_django": github_authorize_url_django,
             "github_authorize_url_flask": github_authorize_url_flask,
             "github_authorize_url_expressFramework": github_authorize_url_expressFramework,
+            "github_authorize_url_flowise": github_authorize_url_flowise,
             "github_authorize_url_existing_repo": github_authorize_url_existing_repo,
             "request": request,
         },
@@ -629,6 +635,22 @@ async def githubcallback(request):
         add_flask_quickstart()
 
     if "expressFramework" in state:
+        DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT = 3000
+        # POST DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT to DOKKU_HOST_SSH_ENDPOINT
+        data = {
+            "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY": CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY,
+            "APP_NAME": APP_NAME,
+            "KEY": f"{APP_NAME}:DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT",
+            "VALUE": DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT,
+        }
+        try:
+            print("Posting to DOKKU_HOST_SSH_ENDPOINT")
+            req = requests.post(
+                DOKKU_HOST_SSH_ENDPOINT + "/STORE-KEY-VALUE", json=data, timeout=10
+            )
+        except requests.exceptions.ConnectTimeout as e:
+            print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
+
         add_expressFramework_quickstart()
 
     if "---existing_repo-" in state:
