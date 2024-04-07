@@ -635,6 +635,9 @@ async def githubcallback(request):
         add_flask_quickstart()
 
     if "expressFramework" in state:
+        add_expressFramework_quickstart()
+
+    if "flowise" in state:
         DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT = 3000
         # POST DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT to DOKKU_HOST_SSH_ENDPOINT
         data = {
@@ -650,8 +653,6 @@ async def githubcallback(request):
             )
         except requests.exceptions.ConnectTimeout as e:
             print(f"Ignoring ConnectTimeout because we fire and forget: {e}")
-
-        add_expressFramework_quickstart()
 
     if "---existing_repo-" in state:
         # In this case don't create a new repo, only
