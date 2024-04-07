@@ -1,3 +1,17 @@
+# v0.0.46 (Sun Apr 07 2024)
+
+#### 🐛 Bug Fix
+
+- wip Fix #46 add_flowise_quickstart [#47](https://github.com/KarmaComputing/container-hosting/pull/47) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- wip Fix #46 correct flowise DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT & can add applications [#47](https://github.com/KarmaComputing/container-hosting/pull/47) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+- wip Fix #46 DEFAULT_CONTAINER_INTERNAL_LISTEN_PORT & can add applications [#47](https://github.com/KarmaComputing/container-hosting/pull/47) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.45 (Sun Apr 07 2024)
 
 #### 🐛 Bug Fix
