@@ -1,3 +1,15 @@
+# v0.0.47 (Sun Oct 06 2024)
+
+#### 🐛 Bug Fix
+
+- Fix #50 resource limit cpu/memory/filehandles/network [#51](https://github.com/KarmaComputing/container-hosting/pull/51) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.46 (Sun Apr 07 2024)
 
 #### 🐛 Bug Fix
