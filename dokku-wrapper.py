@@ -73,7 +73,11 @@ print(f"🐌 Limiting app CPU resources for app: {APP_NAME}")
 subprocess.run(f"dokku resource:limit --cpu 1.5 {APP_NAME}", shell=True)
 
 print(f"🧠 Limiting app memory resources for app: {APP_NAME}")
-subprocess.run(f"dokku resource:limit --memory 500m {APP_NAME}", shell=True)
+subprocess.run(f"dokku resource:limit --memory 500m --cpu 0.25 --network-ingress 50m --network-egress 50m {APP_NAME}", shell=True)
+
+subprocess.run(f"dokku docker-options:add {APP_NAME} deploy '--ulimit nofile=200'", shell=True)
+subprocess.run(f'dokku docker-options:add {APP_NAME} deploy --cpus="0.25"', shell=True)
+subprocess.run(f'dokku docker-options:add {APP_NAME} deploy "--memory=200m --memory-swappiness=200m"', shell=True)
 
 
 try:
