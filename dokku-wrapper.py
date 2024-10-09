@@ -77,7 +77,7 @@ subprocess.run(f"dokku resource:limit --memory 500m --cpu 0.25 --network-ingress
 
 subprocess.run(f"dokku docker-options:add {APP_NAME} deploy '--ulimit nofile=200'", shell=True)
 subprocess.run(f'dokku docker-options:add {APP_NAME} deploy --cpus="0.25"', shell=True)
-subprocess.run(f'dokku docker-options:add {APP_NAME} deploy "--memory=200m --memory-swappiness=200m"', shell=True)
+subprocess.run(f'dokku docker-options:add {APP_NAME} deploy "--memory=200m --memory-swappiness=0"', shell=True)
 
 
 try:
