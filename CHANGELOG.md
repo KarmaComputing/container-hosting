@@ -1,3 +1,15 @@
+# v0.0.48 (Wed Oct 09 2024)
+
+#### ⚠️ Pushed to `main`
+
+- set --memory-swappiness 0 ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.47 (Sun Oct 06 2024)
 
 #### 🐛 Bug Fix
