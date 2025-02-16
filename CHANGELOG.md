@@ -1,3 +1,15 @@
+# v0.0.49 (Sun Feb 16 2025)
+
+#### 🐛 Bug Fix
+
+- Fix #52 embed app name in app deployment template flask [#53](https://github.com/KarmaComputing/container-hosting/pull/53) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.48 (Wed Oct 09 2024)
 
 #### ⚠️ Pushed to `main`
