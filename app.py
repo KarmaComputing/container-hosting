@@ -57,6 +57,7 @@ CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY = os.getenv(
     "CONTAINER_HOSTING_SSH_SETUP_HANDLER_API_KEY"
 )
 DOKKU_WRAPPER_FULL_PATH = os.getenv("DOKKU_WRAPPER_FULL_PATH")
+CORS_ALLOWED_HOST = os.getenv("CORS_ALLOWED_HOST")
 # Default port to 5000
 # See https://dokku.com/docs~v0.15.5/networking/port-management/#:~:text=Applications%20not%20using-,EXPOSE,-Any%20application%20that
 
@@ -146,6 +147,7 @@ async def homepage(request):
             "github_authorize_url_existing_repo": github_authorize_url_existing_repo,
             "request": request,
         },
+        headers={"Access-Control-Allow-Origin": CORS_ALLOWED_HOST},
     )
 
 
@@ -577,6 +579,13 @@ async def githubcallback(request):
             f"./tmp-cloned-repos/{APP_NAME}/src",
             dirs_exist_ok=True,
         )
+        # Embed APP_NAME into deployed app
+        subprocess.run(
+            f"sed -i 's/Flaskr/Flaskr {APP_NAME}/g' web/templates/base.html",
+            shell=True,
+            cwd=f"./tmp-cloned-repos/{APP_NAME}/src",
+        )
+
         # add/commit framework files to repo
         index = repo.index
         index.add([f"{BASE_PATH}tmp-cloned-repos/{APP_NAME}/src/web"])
