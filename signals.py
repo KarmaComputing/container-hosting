@@ -52,7 +52,7 @@ def signal_subscriber_new_repo(sender):
     APP_NAME: {repo_name}\n\n\n\n
     """
     send_email(
-        "New repo created for {github_username}",
+        f"New repo created for {github_username}",
         SITE_ADMIN_EMAIL,
         SITE_ADMIN_EMAIL,
         body,
