@@ -1,3 +1,15 @@
+# v0.0.50 (Mon Feb 17 2025)
+
+#### ⚠️ Pushed to `main`
+
+- detail site admin email for better support ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.49 (Sun Feb 16 2025)
 
 #### 🐛 Bug Fix
