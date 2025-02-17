@@ -15,13 +15,8 @@ signal_new_repo = signal("signal_new_repo")
 
 def signal_subscriber_new_repo(sender):
 
-    # Inform SITE_ADMIN
     log.info(f"signal_subscriber_new_repo signal caught by sender {sender}")
-    send_email(
-        "New repo created", SITE_ADMIN_EMAIL, SITE_ADMIN_EMAIL, "New repo created"
-    )
 
-    # Inform user
     app_url = ""
     repo_name = ""
     user_email = ""
@@ -49,6 +44,21 @@ def signal_subscriber_new_repo(sender):
             f"https://github.com/{github_username}/{repo_name}/settings/secrets/actions"
         )
 
+    # Inform SITE_ADMIN
+    body = f"""Github username: {github_username}!\n\n
+    email: {user_email}\n\n
+    app_url: {app_url}\n\n
+    github_repo_url: {github_repo_url}\n\n
+    APP_NAME: {repo_name}\n\n\n\n
+    """
+    send_email(
+        "New repo created for {github_username}",
+        SITE_ADMIN_EMAIL,
+        SITE_ADMIN_EMAIL,
+        body,
+    )
+
+    # Inform user
     subject = f"Your Container Hosting is ready {github_username}!🚀"
     body = f"""Welcome {github_username}!\n\n
     Your container is hosted at: {app_url}\n\n
