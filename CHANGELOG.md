@@ -1,3 +1,15 @@
+# v0.0.51 (Mon Feb 17 2025)
+
+#### ⚠️ Pushed to `main`
+
+- missing f string ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.50 (Mon Feb 17 2025)
 
 #### ⚠️ Pushed to `main`
