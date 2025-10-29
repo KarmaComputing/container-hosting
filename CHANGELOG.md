@@ -1,3 +1,15 @@
+# v0.0.52 (Wed Oct 29 2025)
+
+#### 🐛 Bug Fix
+
+- Fix #56 add g++ to flask quickstart for greenlet -> gunicorn [#57](https://github.com/KarmaComputing/container-hosting/pull/57) ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.51 (Mon Feb 17 2025)
 
 #### ⚠️ Pushed to `main`
