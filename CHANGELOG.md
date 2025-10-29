@@ -1,3 +1,15 @@
+# v0.0.53 (Wed Oct 29 2025)
+
+#### ⚠️ Pushed to `main`
+
+- remove flowise ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.52 (Wed Oct 29 2025)
 
 #### 🐛 Bug Fix
